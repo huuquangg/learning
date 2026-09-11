@@ -8434,7 +8434,7 @@
       "x": 948,
       "y": 954,
       "width": 665.0000000000001,
-      "height": 154,
+      "height": 130.66666666666652,
       "angle": 0,
       "strokeColor": "#dc2626",
       "backgroundColor": "transparent",
@@ -8450,11 +8450,11 @@
         "type": 3
       },
       "seed": 1,
-      "version": 57,
-      "versionNonce": 178522858,
+      "version": 61,
+      "versionNonce": 13694351,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1789107911305,
+      "updated": 1789120247232,
       "link": null,
       "locked": false
     },
