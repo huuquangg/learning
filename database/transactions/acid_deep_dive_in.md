@@ -1,11 +1,11 @@
 ACID
  │
  ├── Atomicity
- │      └── Transaction Log
+ │      └── Transaction Log / WAL
  │             └── Undo / Rollback
  │
  ├── Durability
- │      └── WAL
+ │      └── Transaction Log / WAL
  │             └── Flush / Checkpoint / Recovery
  │
  ├── Isolation
@@ -25,6 +25,8 @@ ACID
  │      └── Implementation
  │              ├── Locking
  │              │     ├── Blocking
+ │              │     ├── OpstimisticLock
+ │              │     ├── PermisticLock
  │              │     └── Deadlock
  │              │
  │              └── MVCC
