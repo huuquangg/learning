@@ -22,11 +22,11 @@ Còn Locking, MVCC, optimistic concurrency... mới gần với cơ chế/thuậ
 
 Theo mô hình ANSI SQL kinh điển:
 
-Isolation Level	Dirty Read	Non-repeatable Read	Phantom Read
-Read Uncommitted	Có thể	Có thể	Có thể
-Read Committed	Chặn	Có thể	Có thể
-Repeatable Read	Chặn	Chặn	Có thể
-Serializable	Chặn	Chặn	Chặn
+Isolation Level	    Dirty Read	Non-repeatable Read	Phantom Read
+Read Uncommitted	Có thể	        Có thể	            Có thể
+Read Committed	    Chặn	        Có thể	            Có thể
+Repeatable Read	    Chặn	        Chặn	            Có thể
+Serializable	    Chặn	        Chặn	            Chặn
 Còn Lost Update không nằm gọn trong bảng ANSI cổ điển này; nó thường được xử lý bởi write locking, serializable execution, MVCC conflict detection, optimistic version check hoặc cách viết atomic update.
 Correctness
     ▲
@@ -41,4 +41,9 @@ Correctness
     │
     │ Read Uncommitted
     │      ●
-    └────────────────────────► Concurrency / Performance
+    └────────────────────────► Block Concurrency / Low Performance
+
+Read Uncommitted: [Read Uncommitted](./read-uncommitted.md)
+Read Uncommitted: [Read Uncommitted](./read-uncommitted.md)
+Read Uncommitted: [Read Uncommitted](./read-uncommitted.md)
+Read Uncommitted: [Read Uncommitted](./read-uncommitted.md)
