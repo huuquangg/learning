@@ -24,7 +24,7 @@ Theo mô hình ANSI SQL kinh điển:
 
 Isolation Level	    Dirty Read	Non-repeatable Read	Phantom Read
 Read Uncommitted	Có thể	        Có thể	            Có thể
-Read Committed	    Chặn	        Có thể	            Có thể
+Read Committed	    Chặn	        Có thể	            Có thể      (Mostly use)
 Repeatable Read	    Chặn	        Chặn	            Có thể
 Serializable	    Chặn	        Chặn	            Chặn
 Còn Lost Update không nằm gọn trong bảng ANSI cổ điển này; nó thường được xử lý bởi write locking, serializable execution, MVCC conflict detection, optimistic version check hoặc cách viết atomic update.
@@ -44,6 +44,6 @@ Correctness
     └────────────────────────► Block Concurrency / Low Performance
 
 Read Uncommitted: [Read Uncommitted](./read-uncommitted.md)
-Read Uncommitted: [Read Uncommitted](./read-uncommitted.md)
-Read Uncommitted: [Read Uncommitted](./read-uncommitted.md)
-Read Uncommitted: [Read Uncommitted](./read-uncommitted.md)
+Read Committed: [Read Committed](./read-committed.md)
+Reapeatable: [Read Repeatable](./repeatable.md)
+Serializable: [Serializable](./serializable.md)
