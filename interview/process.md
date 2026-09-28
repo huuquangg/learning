@@ -1,8 +1,8 @@
 ## 0–5 minutes: Introduction
 ### 1. Tell us about yourself and your relevant experience? (100%) 2-3
 I’m Quang, *a software engineer with two and a half years of experience* building distributed systems.
-Previously, *At OPSWAT*, I worked on an intrusion detection system with three components: Enterprise, Site, and Sensor. On the Sensor components, I developed agents for Windows and Linux (Debian distro) that captured network traffic, normalized the data, and sent it to Site. At Site, I worked on features for asset, connection, policy, and vulnerability management, as well as communication between services. Enterprise provided centralized management across Sites.
-I’m now at *AvePoint*, working on backend services for a partner relationship management platform in the Microsoft cloud ecosystem. AvePoint also works in areas such as data backup and migration. 
+Previously, *At OPSWAT*, I worked on an intrusion detection system which is make of three components: Enterprise, Site, and Sensor. On the Sensor components, agents for Windows and Linux that captured network traffic, normalized the data, and sent it to Site. At Site, manage and modeling thể data for asset, connection, policy, and vulnerability. Enterprise provided centralized management across multiple Sites.
+I’m now at *AvePoint*, working on backend services for backup and migration data for a partner platform in the Microsoft Azure cloud ecosystem.
 I’m interested in this role (SWE Desktop/Native) because it *algined with my experience* with background agents, distributed communication agents, networking, and security platform.
 
 “What interests you about Twin Signal and this Desktop/Native role?” **close to what I did**,**build further expertise in this area**
