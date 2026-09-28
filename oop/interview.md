@@ -510,7 +510,236 @@ Then separately understand **firewall → VPN → ZTNA**, because those are abou
 
 # 6. Windows Services & Linux Daemons
 
-Yes. For interview prep, I’d narrow it to these **10 core questions only** and keep every answer at a solid foundation level.
+Windows services are background processes that run independently of user login, managed by the Service Control Manager (SCM).
+
+**Core concepts:**
+- **SCM (Service Control Manager)** — `services.exe`, runs at boot, starts/stops/monitors all services
+- **Service executable** — implements `ServiceMain()` and a control handler to respond to start/stop/pause requests
+- **Startup types**:
+  - Automatic — starts at boot
+  - Automatic (Delayed Start) — starts shortly after boot, reduces startup contention
+  - Manual — starts on demand
+  - Disabled — can't be started
+- **Service accounts** — context a service runs under:
+  - `LocalSystem` — highest privilege, full OS access
+  - `LocalService` — minimal privileges, network access as anonymous
+  - `NetworkService` — minimal privileges, network access as machine account
+  - Custom user/domain account — for specific permission needs
+- **Service SIDs / isolation** — each service can get its own SID so its resources can be locked down independently of others sharing a host process
+- **Session 0 isolation** (since Vista) — services run in Session 0, separate from user sessions, so they can't interact with the desktop
+
+**Service hosting:**
+- Standalone `.exe` per service, or
+- Shared `svchost.exe` processes — many Windows services are DLLs grouped into shared host processes to reduce overhead
+
+**Management tools:**
+- `services.msc` — GUI
+- `sc.exe` — command-line (create, config, query, start, stop)
+- `PowerShell` — `Get-Service`, `Start-Service`, `Stop-Service`, `Set-Service`, `New-Service`
+- Registry — service configs live under `HKLM\SYSTEM\CurrentControlSet\Services`
+
+**Lifecycle/state machine:**
+`Stopped → Start Pending → Running → Stop Pending → Stopped` (plus Pause/Continue states if supported)
+
+**Dependencies:** services can declare dependencies on other services or drivers; SCM starts them in the correct order.
+
+**Recovery options:** each service can define actions on failure (restart service, run a program, reboot machine), configurable per failure count.
+
+**Security-relevant notes:**
+- Weak service permissions (e.g., writable binary path, unquoted service paths) are a classic privilege-escalation vector
+- Services running as `LocalSystem` are high-value targets if compromised
+
+Here's a deeper look at the registry structure and runtime behavior of Windows services.
+
+**Registry location**
+
+All services (and drivers) are registered under:
+```
+HKLM\SYSTEM\CurrentControlSet\Services\<ServiceName>
+```
+
+Key values under each service key:
+- **ImagePath** — path to the executable (or driver .sys file)
+- **Start** — startup type:
+  - `0` = Boot (driver, loaded by kernel loader)
+  - `1` = System (driver, loaded by I/O subsystem)
+  - `2` = Automatic
+  - `3` = Manual
+  - `4` = Disabled
+- **Type** — what kind of service:
+  - `1` = Kernel driver
+  - `2` = File system driver
+  - `0x10` = Own process (`SERVICE_WIN32_OWN_PROCESS`)
+  - `0x20` = Shared process (`SERVICE_WIN32_SHARE_PROCESS`, i.e. svchost-hosted)
+  - `0x110`/`0x120` = interactive variants (rare, legacy)
+- **ErrorControl** — what happens if the service fails to start (ignore/normal/severe/critical, affects boot behavior)
+- **ObjectName** — account the service runs as (e.g. `LocalSystem`, `NT AUTHORITY\NetworkService`, or a domain user)
+- **DependOnService** / **DependOnGroup** — dependency list
+- **DisplayName**, **Description**
+- **FailureActions** (binary blob) — recovery settings (restart/run command/reboot, reset period)
+
+For svchost-hosted services, there's also a `Parameters` subkey with `ServiceDll` pointing to the DLL, since the actual code isn't in an executable at ImagePath — svchost.exe is the ImagePath, and it loads the DLL.
+
+**Runtime / boot sequence**
+
+1. Bootloader loads kernel + boot-start drivers (`Start=0`) directly.
+2. Kernel finishes init, I/O manager loads system-start drivers (`Start=1`).
+3. `wininit.exe` starts `services.exe` (the SCM).
+4. SCM reads the registry, builds a dependency graph, and starts:
+   - Auto-start services in dependency order
+   - Delayed-auto-start services shortly after (via a separate timer, off the critical boot path)
+5. Manual-start services wait for something to request `StartService()` (another service, an app, or a user via `services.msc`/`sc start`).
+6. Each service process calls `StartServiceCtrlDispatcher()` early in `main()`, registering a `ServiceMain` entry point per service name — this is how one .exe can host multiple services (like `svchost.exe`).
+7. `ServiceMain` calls `RegisterServiceCtrlHandlerEx()` to receive control codes (stop, pause, shutdown, custom), then reports `SERVICE_RUNNING` via `SetServiceStatus()`.
+8. SCM polls/expects periodic status updates during pending states (`dwWaitHint`, `dwCheckPoint`) — if a service doesn't respond in time, SCM considers it hung.
+
+**Useful runtime inspection commands**
+```
+sc query <name>            # current state
+sc qc <name>                # query config (ImagePath, start type, account)
+sc queryex <name>           # includes PID
+reg query HKLM\SYSTEM\CurrentControlSet\Services\<name>
+tasklist /svc               # map PIDs to hosted services
+Get-Service | ? Status -eq Running
+```
+
+Linux equivalents: daemons are background processes, and **systemd** is the init system/service manager on most modern distros (replacing SysV init and Upstart).
+**Daemon fundamentals**
+- A daemon is a long-running background process, typically with no controlling terminal, named with a trailing `d` (`sshd`, `crond`, `systemd-journald`).
+- **Classic (SysV-style) daemonization**: fork, `setsid()` to detach from the terminal, fork again (so it can't reacquire a TTY), `chdir("/")`, reset `umask`, close/redirect stdin/stdout/stderr to `/dev/null`, write a PID file.
+- **Modern approach**: don't daemonize yourself. Run in the foreground and let systemd supervise (`Type=simple`), logging to stdout/stderr (captured by journald).
+
+**Init history**
+- **SysV init**: shell scripts in `/etc/init.d/`, runlevels 0-6, symlinks in `/etc/rc*.d/`, sequential startup.
+- **Upstart**: event-driven (Ubuntu, briefly).
+- **systemd**: parallel startup, dependency-based, socket/bus/timer activation, cgroup tracking. PID 1.
+
+**systemd core concepts**
+- **Units** are the objects systemd manages. Types:
+  - `.service` — a daemon/process
+  - `.socket` — socket activation
+  - `.timer` — cron-like scheduling
+  - `.target` — grouping/sync points (like runlevels)
+  - `.mount`, `.automount`, `.device`, `.path`, `.slice`, `.scope`, `.swap`
+- **Targets**: `multi-user.target` (~runlevel 3), `graphical.target` (~5), `rescue.target`, `default.target` (symlink to the boot target).
+- **cgroups**: each service runs in its own cgroup, so systemd can track all child processes and kill them reliably on stop.
+
+**Unit file locations (precedence high to low)**
+```
+/etc/systemd/system/          # admin-created/overrides
+/run/systemd/system/          # runtime
+/usr/lib/systemd/system/      # package-installed (don't edit)
+~/.config/systemd/user/       # per-user units
+```
+Use drop-ins (`systemctl edit foo.service` → `/etc/systemd/system/foo.service.d/override.conf`) rather than editing packaged files.
+
+**Example service unit**
+```ini
+[Unit]
+Description=My App
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/myapp --config /etc/myapp.conf
+User=myapp
+Group=myapp
+Restart=on-failure
+RestartSec=5
+Environment=LOG_LEVEL=info
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**Key `[Service]` options**
+- **Type**: `simple` (default), `exec`, `forking` (classic daemon, needs `PIDFile=`), `oneshot`, `notify` (service signals readiness via `sd_notify`), `dbus`, `idle`
+- **Restart**: `no`, `on-failure`, `always`, `on-abnormal`, etc.
+- **ExecStartPre / ExecStartPost / ExecStop / ExecReload**
+- **TimeoutStartSec / TimeoutStopSec**
+- **User / Group / DynamicUser**
+
+**Dependencies and ordering** (separate concepts):
+- `Requires=`, `Wants=`, `BindsTo=`, `Conflicts=` — *what* gets pulled in
+- `After=`, `Before=` — *order* only
+
+**Hardening options** (a big systemd strength)
+```
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+RestrictAddressFamilies=AF_INET AF_INET6
+MemoryMax=512M
+```
+Check the score with `systemd-analyze security myapp.service`.
+
+**Management commands**
+```
+systemctl start|stop|restart|reload|status <unit>
+systemctl enable|disable <unit>      # create/remove WantedBy symlinks
+systemctl enable --now <unit>
+systemctl mask|unmask <unit>         # like "Disabled" but stronger (links to /dev/null)
+systemctl daemon-reload              # after editing unit files
+systemctl list-units --type=service
+systemctl list-unit-files
+systemctl cat|show|edit <unit>
+systemctl --user ...                 # per-user manager
+systemctl get-default / set-default multi-user.target
+```
+
+**Logging: journald**
+```
+journalctl -u myapp.service -f       # follow
+journalctl -b                        # this boot
+journalctl -p err --since "1 hour ago"
+journalctl -xe                       # recent errors with explanations
+```
+
+**Boot analysis**
+```
+systemd-analyze                      # total boot time
+systemd-analyze blame                # slowest units
+systemd-analyze critical-chain
+```
+
+**Timers (cron replacement)**
+```ini
+# backup.timer
+[Timer]
+OnCalendar=daily
+Persistent=true
+[Install]
+WantedBy=timers.target
+```
+Paired with `backup.service`.
+
+**Socket activation**: systemd listens on a port/socket and starts the service on first connection, passing the file descriptor. Enables on-demand start and zero-downtime restarts.
+
+**Windows to Linux mapping**
+
+| Windows | Linux (systemd) |
+|---|---|
+| SCM (`services.exe`) | systemd (PID 1) |
+| Service | `.service` unit |
+| Registry `Services\<name>` | Unit files in `/etc/systemd/system` |
+| Startup type Automatic | `enable` (WantedBy target) |
+| Manual / Disabled | not enabled / `mask` |
+| `LocalSystem` / custom account | `User=` (root default) / `DynamicUser=` |
+| Service SID isolation | Sandboxing options (`ProtectSystem`, `PrivateTmp`, etc.) |
+| Recovery options | `Restart=`, `OnFailure=` |
+| Dependencies | `Requires=`/`Wants=` + `After=` |
+| `sc` / `Get-Service` | `systemctl` |
+| Event Log | journald / `journalctl` |
+| Scheduled Tasks | `.timer` units / cron |
+| Session 0 isolation | Services have no session/TTY by default |
+
+**Security notes**
+- Writable unit files or writable `ExecStart` binaries owned by non-root are a privilege-escalation vector (analogous to weak service permissions on Windows).
+- Services running as root without sandboxing are high-value targets; prefer unprivileged users plus hardening directives.
 
 1. **What is a Windows Service?**  
 A Windows Service is a background process managed by the **Service Control Manager (SCM)**. It can start automatically with Windows, run without a logged-in user, and be started, stopped, or restarted by the OS.
