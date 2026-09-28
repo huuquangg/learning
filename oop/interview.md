@@ -20,8 +20,8 @@
 
 > An interface and an abstract class both provide abstraction, but they serve different purposes.
 
-- **Interface:** defines a contract — a set of members that implementations agree to provide.
-- **Abstract class:** provides a shared base that can contain state, abstract members, and common implementation for derived classes.
+- **Interface:** defines a contract — a set of members methods without implementations.
+- **Abstract class:** provides a shared base class that can contain state, abstract members, and common implementation for derived classes.
 - **Key distinction:** a class can implement multiple interfaces but can inherit from only one class.
 - **Practical use:** expose an interface to consumers, and use an abstract base class internally when implementations need shared behavior.
 
@@ -35,7 +35,7 @@ OOP organizes software around objects that contain both **state** and **behavior
 |---|---|
 | **Encapsulation** | Protect internal state and expose controlled operations. |
 | **Abstraction** | Hide implementation details and expose only what consumers need. |
-| **Inheritance** | Allow a class to extend a base class and reuse behavior when there is a genuine IS-A relationship. |
+| **Inheritance** | Allow a class to extend a base class and reuse behavior. |
 | **Polymorphism** | Allow different implementations to be accessed through the same abstraction. |
 
 ---
@@ -50,14 +50,9 @@ This reduces coupling and makes implementations easier to swap, test, and mainta
 
 # 4. Multithreading & Async Foundations
 
-Yes — for interview prep, a tighter foundation is better. You mainly need to understand the relationships between the concepts and explain them clearly.
-
-## Core foundation
-
 ## 1. Process and Thread
 
 A **process** is a running application with its own memory.
-
 A **thread** is a unit of execution inside that process.
 
 A process can have multiple threads:
@@ -412,10 +407,6 @@ Your overall mental model is heading in the right direction, but there are a few
 | **Firewall** | A firewall enforces rules controlling network traffic. Rules can consider things like source/destination IP, ports, protocol, connection state, application, interface, etc., and decide whether traffic is allowed or blocked. |
 | **VPN** | A VPN is **not simply a proxy**. It creates an encrypted tunnel between your device and another network/VPN gateway. It can route some or all network traffic through that tunnel, making your device logically connected to the remote/private network. |
 | **ZTNA** | Zero Trust Network Access provides access based on **identity, device posture, policy, and context**, rather than trusting someone merely because they are connected to the corporate network. Typically, it grants access to specific applications/resources instead of giving broad network access like a traditional VPN. |
-
-For TCP vs UDP, this picture is particularly useful:
-
-
 
 ## The biggest corrections to your current understanding
 
