@@ -4,62 +4,64 @@ I’m Quang, *a software engineer with two and a half years of experience* build
 Previously, *At OPSWAT*, I worked on an intrusion detection system which is make of three components: Enterprise, Site, and Sensor. On the Sensor components, agents running on Windows and Linux that captured network traffic and sent it to Site. At Site, manage and modeling the data for asset, connection, policy, and vulnerability. Enterprise provided centralized management across multiple Sites.
 I’m now at *AvePoint*, working on backend services for backup and migration data for a partner platform in the Microsoft Azure cloud ecosystem.
 I’m interested in this role (SWE Desktop/Native) because it *algined with my experience* with background agents, distributed communication agents, networking, and security platform.
-
-### “What interests you about Twin Signal and this Desktop/Native role?” **close to what I did**,**build further expertise in this area**
+### “What interests you about Twin Signal and this Desktop/Native role?”
 What draws me to Twin Signal is The Desktop/Native role is close to the work I've done before, where I  built and shipped a Windows/Linux app, worked on installer/update pipeline. That means I can contribute quickly without a long ramp-up.
 At the same time, I'm looking to go deeper in this area. In my last role I worked on one Azure platform frequency, and this position would let me own more of native architecture, cross-platform behavior, performance, system-level integration. I'm excited to do that."
-
-“Your recent work is mainly backend development. How does it prepare you for building endpoint agents?” **share several common aspects**, **valuable knowledge when bring it on**
-
+### “Your recent work is mainly backend development. How does it prepare you for building endpoint agents?” *share several common aspects*, *valuable knowledge when bring it on*
 ---
-
 ## 5–15 minutes: Your experience and project ownership.
-
-### “Walk us through the architecture of the product you worked on at OPSWAT. What did you personally own?”
+### “Walk us through the product you worked on at OPSWAT. What did you personally own?”
 "The product its an intrusion detection system for OT industrial. It had three tiers: Sensor, Site, and Enterprise. Data flowed upward from Sensor to Enterprise.
 - Sensor is the data collection layer, At this layer I developed agents that capture packets and recognize Siemens, Schneider devices assets and its communication on specific network segments, packaged the installers for both platforms, WiX for Windows and .deb for Linux and distribute and mornitoring the service lifecycle.
 - Site is the processing and management layer for one location. It receives normalized data from Sensors and builds the core model. I worked on manage devices and proflies of them. I also built connection visualization, showing relationships between assets as a graph. I worked on policy management and enforcement: when a policy was violated, Site could trigger a alert and call 3rd-party NAC, firewalls, and Aruba ClearPass to make an action, enrichment data integrate with ServiceNow or Miraki.
 - Enterprise sits on top and provides centralized management across Sites: consolidated visibility, and configuration governance. I built parts of the dashboard for the cross-Site view. I worked on centralized configuration management, so settings could be pushed to multiple Sites from one place."
-=> Possible asking how components comunication
+=> Possible asking how components comunication  **15–30 minutes**
 "We used three mechanisms, chosen by the nature of the data:
 - REST API for stateless request/response: configuration push, queries, dashboard data. Simple, cacheable, easy to retry.
 - Sockets for low-latency, high-frequency signals: heartbeats and status. If one is lost, the next one replaces it, so occasional loss is acceptable.
 - Message queue for critical data like alerts and asset events. Messages are persisted and acknowledged, so if the network drops between tiers, nothing is lost and the queue redelivers after reconnect. Because redelivery can cause duplicates, consumers dedupe with message IDs (idempotent processing)."
-
 ### “Tell us about a Windows service or background service you developed.”
 "I developed the Sensor agent, a background service that runs on Windows and Debian Linux. It captures network traffic, normalizes the data, and sends it to our backend, Site, over an authenticated connection.
 My part was wrote the service itself, handshake connection with site, simple extract and normalize data. On Windows I registered it with the Service Control Manager and handled start and stop requests. On Debian I wrote the systemd unit and set the service user and file permissions. I made sure that on a stop signal the agent closed its connections and released its resources cleanly, rather than getting killed mid-send.
 I also built the resilience side. If the connection to Site dropped, the agent retried with backoff and buffered data locally and reconnected on its own. I configured recovery so that if the process crashed, the OS restarted it and it picked back up.
 One thing I dealt with was [a real problem: e.g., permissions needed for packet capture, a service that hung on shutdown, a reconnect loop that hammered the backend, data lost during a restart] and I [what you did to fix it, plus the result]."
 => Possible asking detail to Windows Services/Daemons services
-
 ### “What was your involvement in MSI installers and software releases?”
 I worked on the installers for our Windows and Linux agents from start to finish. I wrote the packaging, an MSI on Windows built with WiXToolset and a DEB on Debian, so that a fresh install laid down the agent, registered the service, and started it.
 I also tested what I built. For every release I ran fresh installs and upgrades on clean machines/windows sandbox, checked that the service started, that it connected back to the backend, and that the existing config survived the update.
 When something failed, I was the one debugging it. I'd go through the installer logs and service logs to find where it broke, then fix it in the package itself. For example, a config being overwritten on upgrade, a service not connect to Site after an update, a rollback that left things half-installed, and what you did about it.
 On releases, I was part of the sign-off. I verified the build, confirmed test results, signed off on the installer side while the final call sat with devops. That all the scope I was involvement 
-
-
-## 60+ minutes: Ref.
-
+## 15–30 minutes: Services, OS fundamentals, and backend communication
+=> Possible asking how components comunication
+## 45–55 minutes: Testing, ownership, and teamwork
+### “Your strongest language is C#. How comfortable are you with Rust or Go?”
+"C# is my strongest language, but I don't see switching languages as a big obstacle. The core concepts carry over: types, concurrency, memory, error handling, and API design. What changes is the idioms, like goroutines in Go or ownership in Rust. To get productive in your codebase, I'd read the existing code and tests first, then take a small ticket and ship it with review feedback. I also use AI to explain unfamiliar idioms and translate C# patterns into idiomatic Go or Rust, and I always check its output against the docs and code review so I'm actually learning the language."
+### “How would you investigate high CPU or memory usage on a customer’s device?”
+"I'd start by finding out which process, version, and devices are affected, and when it began. On the device, I'd use `htop` on Linux or Task Manager on Windows to see what's using CPU or RAM and whether it keeps growing. I'd also add a simple health check to the agent that reports its own CPU and RAM every minute to our monitoring, with an alert if it stays above a threshold, and let systemd or the Windows service settings restart it if it crashes. Then I'd check the logs around when the problem began, and if needed, take memory dumps to see what's growing. To reproduce it, I'd run the same version and config in a test environment and leave it running for a few hours while watching CPU and memory. After fixing it, I'd add an alert so we catch it earlier next time."
 ### “Describe a difficult production bug. How did you find the root cause and verify the fix?”
 "We had a production issue where the connection between our components kept dropping, and it was hard to reproduce. Some devices would just stop sending data.
 Our socket was supposed to exist only once in the whole app, but the dependency injection setup was quietly creating a second copy without any error. One copy kept the live connection, and the other was the one some parts of the code were actually using. When the wrong one lost its connection, everything depending on it went silent.
 To find it, I looked at the logs around the drops and noticed the connection behaved as if it were two different objects. So I added logging in the constructor to see how many times it got created. It showed up twice, which confirmed the cause. Then I traced it back to how we registered it,it was registered in two different ways, so the system built one for each'.
 I fixed the registration so only one instance exists, then checked it by running the same scenario that used to fail, and the constructor now logged only once. Nothing dropped over.
 To prevent it from happening again, I added a test that checks the socket is created only once / added a startup check / documented how to register shared services."
-
+### “What are your availability, notice period, and expectations for remote collaboration?”
+My notice period is 30 days, starting from the day I accept the offer, so I could start right after that. I'm comfortable working remotely and I'm used to collaborating that way.
+### “How would you test an agent that changes OS settings or runs with elevated privileges?”
+"I'd test it in layers and never run anything that changes real OS settings on my own machine. For unit tests, I'd cover the logic, like validating a command, retry behavior, and checking whether a command was already run, and I'd put the OS calls (registry, files, services) behind interfaces so I can mock them, which keeps the tests fast and safe with no admin rights. Anything that really changes the OS, like editing a setting or running as admin or root, I'd test in a disposable VM, restoring a clean snapshot before each run, and check that the change happened and can be undone. For crashes, I'd kill the process mid-action, restart it, and check that it recovers and doesn't run the command twice. For network loss, I'd disconnect the backend and confirm it saves work locally and sends it when the connection returns. For upgrades, I'd install the old version, upgrade to the new one, and check that settings and data still work."
+### “Tell us about a disagreement over a technical approach.”
+### “How do you handle unclear requirements, a blocker, or a deadline at risk?”
+### “Why are you considering leaving AvePoint so soon?”
+## 60+ minutes: Ref.
 ### “Describe a deepfake project that you have worked on?“
 "I worked on a research project about spotting deepfakes, mainly to protect face login on phones. The problem is that fake videos are getting very realistic, and tools that look for just one kind of clue often fail when the video is compressed or filmed with different cameras.
 So we looked at two kinds of clues together. First, tiny traces that the fake-generation process leaves in the image, which you can't see by eye but show up when you analyze the image's patterns and noise. Second, how the person behaves: how they blink, where their eyes look, and how their head moves. Fake videos still struggle to get these natural human movements right.
-
 ### Question with no idea?“
 Kubernetes (never used):
 > "I haven't run Kubernetes in production. The closest thing I've done is packaging and managing service lifecycles with WiX and .deb installers. My understanding is that Kubernetes automates deployment, scaling, and restarts of containers. I'd start with a small local cluster like minikube to learn the core concepts, then deploy a simple service. Is that the kind of scenario you have in mind?"
 Kafka (never used):
 > "I haven't used Kafka directly. I've worked with RabbitMQ message queues for reliable delivery between tiers, so I understand acknowledgments and redelivery. My understanding is that Kafka is a distributed log built for high throughput and replay. I'd read up on partitions and consumer groups first, then prototype with a small topic."
 
-# Windows Services & Linux Daemons
+### Windows Services & Linux Daemons
 
 Windows services are background processes that run independently of user login, managed by the Service Control Manager (SCM).
 
@@ -153,7 +155,7 @@ reg query HKLM\SYSTEM\CurrentControlSet\Services\<name>
 tasklist /svc               # map PIDs to hosted services
 Get-Service | ? Status -eq Running
 ```
-
+---
 Linux equivalents: daemons are background processes, and **systemd** is the init system/service manager on most modern distros (replacing SysV init and Upstart).
 **Daemon fundamentals**
 - A daemon is a long-running background process, typically with no controlling terminal, named with a trailing `d` (`sshd`, `crond`, `systemd-journald`).
