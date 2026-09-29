@@ -12,7 +12,7 @@
 => Possible asking how components comunication
 ### Tell us about a Windows service or background service you developed.
 > I developed the Sensor agent, a background service that runs on Windows and Debian Linux. My part was wrote the service itself, handshake connection with site, simple extract and normalize data (core features of agents). 
-On Windows I registered it with the Service Control Manager and handled start and stop requests. On Debian I wrote the systemd unit and set the service user and file permissions. Handle around issues like recovery when crash, reconnect mechanism, service lifecyle, etc.
+On Windows I wrote the services registered it with the Service Control Manager. On Debian I wrote the systemd unit and set the service user and file permissions. Handle around issues like recovery when crash, reconnect mechanism, service lifecyle, etc.
 <!-- One thing I dealt with was [a real problem: e.g., permissions needed for packet capture, a service that hung on shutdown, a reconnect loop that hammered the backend, data lost during a restart] and I [what you did to fix it, plus the result]." -->
 => Possible asking detail to Windows Services/Daemons services
 ### What was your involvement in MSI installers and software releases?
