@@ -23,9 +23,7 @@ I developed Sensor agents that ran as background services on Windows and Debian 
 The agent captures network traffic, normalizes the data, and sends it to Site over an authenticated connection. On Windows, it runs under the service account configured in the Service Control Manager (SCM), such as LocalSystem if the deployment requires it. On Linux, it runs as the user specified in the systemd unit. Access to the agent's files is controlled through file ownership and permissions (chown/chmod on Linux, NTFS ACLs on Windows). Packet capture requires the appropriate OS permissions.
 When the service receives a stop request, it closes its connections and releases its resources. If the connection to Site drops, the agent retries. If the process fails, SCM or systemd can restart it when recovery is configured, and the agent reconnects to Site.
 
-### “What was your involvement in MSI installers and software releases?” 
-- How did installation and upgrades work?
-- What happened if an upgrade failed?
+### “What was your involvement in MSI installers and software releases?”
 I worked on packaging and release scenarios for both Windows and Linux agents. For a fresh install, we used an MSI on Windows and a DEB on Debian. Each installed the agent, registered its service, and then we checked that the service started and connected.
 For an update, we delivered an MSP patch or a newer MSI on Windows, depending on the release. On Debian, we delivered a newer DEB package. We applied the update, preserved the existing configuration, restarted the service, and checked its health.
 If an update failed, we checked the installer and service logs. MSI or MSP can roll back installer-managed changes; for a failed DEB upgrade, we checked the package state and could explicitly install the previous working version. In both cases, we verified that the agent was running and communicating afterward.”
