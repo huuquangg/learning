@@ -1,44 +1,31 @@
 ## 0–5 minutes: Introduction
-### Tell us about yourself and your relevant experience? (100%) 2-3
-> I’m Quang, *a software engineer with two and a half years of experience* building distributed systems.
-Previously, *At OPSWAT*, I worked on an intrusion detection system which is make of three components: Enterprise, Site, and Sensor. On the Sensor components, agents running on Windows and Linux that captured network traffic and sent it to Site. At Site, manage and modeling the data for asset, connection, policy, and vulnerability. Enterprise provided centralized management across multiple Sites.
-I’m now at *AvePoint*, working on backend services for backup and migration data for a partner platform in the Microsoft Azure cloud ecosystem.
-I’m interested in this role (SWE Desktop/Native) because it *algined with my experience* with background agents, distributed communication agents, networking, and security platform.
+### Tell us about yourself and your relevant experience? (100%)
+> I’m Quang, *a software engineer with two and a half years of experience* building distributed systems. Previously, *At OPSWAT*, I worked on an ids which is make of 3 components: Enterprise, Site, and Sensor. On the Sensor, agents running on Windows and Linux that captured network traffic and sent it to Site. At Site, the data was modeling for asset, connection, and policy, and vulnerability. Enterprise provided centralized management across multiple Sites. I’m now at *AvePoint*, working on backup and migration data platform for Microsoft partner with Azure cloud ecosystem. I’m interested in this role (SWE Desktop/Native) because it *algined with my experience* with background agents, distributed communication agents, networking, and security platform.
 ### What interests you about Twin Signal and this Desktop/Native role?
-> What draws me to Twin Signal is The Desktop/Native role is close to the work I've done before, where I  built and shipped a Windows/Linux app, worked on installer/update pipeline. That means I can contribute quickly without a long ramp-up.
-At the same time, I'm looking to go deeper in this area. In my last role I worked on one Azure platform frequency, and this position would let me own more of native architecture, cross-platform behavior, performance, system-level integration. I'm excited to do that."
+> What draws me to Twin Signal is The Desktop/Native role is close to the work I've done before, where I  built and shipped a Windows/Linux app, worked on installer/update pipeline. Also at the same time, I'm looking to go deeper in this area. In my last role I worked on one Azure platform frequency, so this position would let me own more of native architecture, cross-platform behavior, performance, system-level integration."
 ### Your recent work is mainly backend development. How does it prepare you for building endpoint agents? 
 > *share several common aspects*, *valuable knowledge when bring it on*
 ---
 ## 5–15 minutes: Your experience and project ownership.
 ### Walk us through the product you worked on at OPSWAT. What did you personally own?
-> The product its an intrusion detection system for OT industrial. It had three tiers: Sensor, Site, and Enterprise. Data flowed upward from Sensor to Enterprise.
-- Sensor is the data collection layer, At this layer I developed agents that capture packets and recognize Siemens, Schneider devices assets and its communication on specific network segments, packaged the installers for both platforms, WiX for Windows and .deb for Linux and distribute and mornitoring the service lifecycle.
-- Site is the processing and management layer for one location. It receives normalized data from Sensors and builds the core model. I worked on manage devices and proflies of them. I also built connection visualization, showing relationships between assets as a graph. I worked on policy management and enforcement: when a policy was violated, Site could trigger a alert and call 3rd-party NAC, firewalls, and Aruba ClearPass to make an action, enrichment data integrate with ServiceNow or Miraki.
-- Enterprise sits on top and provides centralized management across Sites: consolidated visibility, and configuration governance. I built parts of the dashboard for the cross-Site view. I worked on centralized configuration management, so settings could be pushed to multiple Sites from one place."
+> The product its an intrusion detection system for OT industrial. It had three tiers: Sensor, Site, and Enterprise. Data flowed upward from Sensor to Enterprise. **(Sensor)** is the data collection layer, At this layer I developed agents that capture packets and recognize Siemens, Schneider devices assets and its communication on specific network segments, packaged the installers for both platforms, WiX for Windows and .deb for Linux and distribute and mornitoring the service lifecycle. **(Site)** is the processing and management layer for one location. It receives normalized data from Sensors and builds the core model. I worked on manage devices and proflies of them. I also built connection visualization, showing relationships between assets as a graph. I worked on policy management and enforcement: when a policy was violated, Site could trigger a alert and call 3rd-party NAC, firewalls, and Aruba ClearPass to make an action, enrichment data integrate with ServiceNow or Miraki. **(Enterprise)** sits on top and provides centralized management across Sites: consolidated visibility, and configuration governance. I built parts of the dashboard for the cross-Site view. I worked on centralized configuration management, so settings could be pushed to multiple Sites from one place."
 => Possible asking how components comunication
 ### Tell us about a Windows service or background service you developed.
-> I developed the Sensor agent, a background service that runs on Windows and Debian Linux. It captures network traffic, normalizes the data, and sends it to our backend, Site, over an authenticated connection.
-My part was wrote the service itself, handshake connection with site, simple extract and normalize data. On Windows I registered it with the Service Control Manager and handled start and stop requests. On Debian I wrote the systemd unit and set the service user and file permissions. I made sure that on a stop signal the agent closed its connections and released its resources cleanly, rather than getting killed mid-send.
+> I developed the Sensor agent, a background service that runs on Windows and Debian Linux. My part was wrote the service itself, handshake connection with site, simple extract and normalize data. 
+On Windows I registered it with the Service Control Manager and handled start and stop requests. On Debian I wrote the systemd unit and set the service user and file permissions. I made sure that on a stop signal the agent closed its connections and released its resources cleanly, rather than getting killed mid-send.
 I also built the resilience side. If the connection to Site dropped, the agent retried with backoff and buffered data locally and reconnected on its own. I configured recovery so that if the process crashed, the OS restarted it and it picked back up.
-One thing I dealt with was [a real problem: e.g., permissions needed for packet capture, a service that hung on shutdown, a reconnect loop that hammered the backend, data lost during a restart] and I [what you did to fix it, plus the result]."
+<!-- One thing I dealt with was [a real problem: e.g., permissions needed for packet capture, a service that hung on shutdown, a reconnect loop that hammered the backend, data lost during a restart] and I [what you did to fix it, plus the result]." -->
 => Possible asking detail to Windows Services/Daemons services
 ### What was your involvement in MSI installers and software releases?
-> I worked on the installers for our Windows and Linux agents from start to finish. I wrote the packaging, an MSI on Windows built with WiXToolset and a DEB on Debian, so that a fresh install laid down the agent, registered the service, and started it.
-I also tested what I built. For every release I ran fresh installs and upgrades on clean machines/windows sandbox, checked that the service started, that it connected back to the backend, and that the existing config survived the update.
-When something failed, I was the one debugging it. I'd go through the installer logs and service logs to find where it broke, then fix it in the package itself. For example, a config being overwritten on upgrade, a service not connect to Site after an update, a rollback that left things half-installed, and what you did about it.
-On releases, I was part of the sign-off. I verified the build, confirmed test results, signed off on the installer side while the final call sat with devops. That all the scope I was involvement 
+> I worked on the installers for our Windows and Linux agents from start to finish. I wrote the customs Dialog UI installer wizard and the packaging pipeline, an MSI on Windows built with WiXToolset and a DEB on Debian. For every release I ran fresh installs and upgrades on clean machines/windows sandbox, checked that the service started, that it connected back to the backend, and that the existing config survived the update. When something failed, I was the one debugging it.
+On releases, I was part of the sign-off. I verified the build, confirmed test results, signed off on the installer side while the final call sat with devops. That all the scope I was involvement
+<!-- (For example, a config being overwritten on upgrade, a service not connect to Site after an update, a rollback that left things half-installed, and what you did about it.) -->
+=> Possible asking debug with production
+
 ## 15–30 minutes: Services, OS fundamentals, and backend communication
 
-**Practice notes:** These are possible questions, not a confirmed interview schedule. Aim for a 30–60 second first answer, then let the interviewer ask for detail. The answers below describe fundamentals and proposed approaches. Use “I implemented” only for work you actually did; “I would” is appropriate for a design question.
-
 ### 1. How would you choose how components communicate?
-
 > "We used three mechanisms, chosen by the nature of the data: REST API for stateless request/response: configuration push, queries, dashboard data. Simple, cacheable, easy to retry. Sockets for low-latency, high-frequency signals: heartbeats and status. If one is lost, the next one replaces it, so occasional loss is acceptable. Message queue for critical data like alerts and asset events. Messages are persisted and acknowledged, so if the network drops between tiers, nothing is lost and the queue redelivers after reconnect. Because redelivery can cause duplicates, consumers dedupe with message IDs (idempotent processing).
-
-**Remember:** Request/response → REST; live updates → persistent connection; queued work → message queue.
-
-**If asked about OPSWAT:** Name the actual protocols and configuration you used. “Socket” alone does not tell the interviewer whether it was TCP, UDP, or WebSocket. Do not claim guaranteed delivery or deduplication unless you can explain the implementation.
 
 ### 2. What is different about a Windows service or Linux daemon?
 
