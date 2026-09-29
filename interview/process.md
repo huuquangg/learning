@@ -1,29 +1,93 @@
+Required Qualifications
+- Proficiency in at least one relevant systems/native language, such as Rust, Go, or a comparable language [Programing languages](#your-strongest-language-is-c-how-comfortable-are-you-with-rust-or-go)
+- Solid understanding of networking fundamentals: TCP/IP, DNS, routing, firewalls, VPN protocols, and/or ZTNA concepts. [Networking Foundations](#networking-foundations)
+- Hands-on experience building, shipping, and maintaining background services, daemons, system agents, or other privileged/low-footprint desktop software
+- Experience with OS-level programming concepts: services/daemons, permissions models, local user/group management, process management, and system APIs on Windows, macOS, and/or Linux.
+- Working knowledge of identity and access management concepts: authentication (SSO, SAML, OIDC), authorization models (RBAC/ABAC), and directory services.
+- Experience designing and consuming REST APIs and integrating third-party systems, including identity providers and SaaS platforms. [Integration](#integration)
+- Familiarity with local data storage, secure credential storage, encryption at rest/in transit, and secrets management. [Local-storage](#local-data-storage)
+- Ability to independently troubleshoot agent, network, identity-integration, and platform-specific issues [Senerios]
+- ~~Strong professional English communication skills, both written and verbal. (practice)~~
+- ~~3+ years of professional software engineering experience for mid-level candidates, or 5+ years for senior-level candidates.~~
+- ~~Experience with Git, code review, automated testing, build tooling, and software release practices.~~
+- ~~Excellent analytical, organizational, prioritization, documentation, and collaboration skills~~
+
+Preferred Qualifications
+- Experience building agents/clients for RMM (remote monitoring and management), EDR/XDR, MDM, VPN, or ZTNA products
+- Experience developing agents for multiple desktop/server operating systems, including Windows, macOS, and Linux
+- Experience with installers, silent deployment, code signing, auto-update systems, and large-scale software distribution
+- ~~Experience with JavaScript or Python (Typescript)~~
+- ~~Experience with Rust or Go for systems-level or security-focused development~~
+- Direct experience integrating with identity providers (Entra ID/Azure AD, Okta, Ping, Google Workspace) or SaaS admin/security APIs (e.g., Google Workspace, Microsoft Graph, Slack, Salesforce)
+- Familiarity with cloud platforms such as Azure or AWS, and real-time communication protocols (WebSockets, gRPC, MQTT)
+- Experience with Docker, CI/CD pipelines, infrastructure-as-code, or deployment automation
+- Knowledge of secure software development, threat modeling, encryption, secrets management, and data privacy/compliance practices (e.g., SOC 2, ISO 27001).
+- Experience with policy engines, rules evaluation systems, or attribute-based access control implementations
+- ~~Experience working in a security product, consulting, or distributed-team environment~~
+- ~~Prior experience mentoring developers or leading small technical initiatives~~
+
 ## 0–5 minutes: Introduction
 ### Tell us about yourself and your relevant experience? (100%)
 > I’m Quang, *a software engineer with two and a half years of experience* building distributed systems. Previously, *At OPSWAT*, I worked on an ids which is make of 3 components: Enterprise, Site, and Sensor. On the Sensor, agents running on Windows and Linux that captured network traffic and sent it to Site. At Site, the data was modeling for asset, connection, and policy, and vulnerability. Enterprise provided centralized management across multiple Sites. I’m now at *AvePoint*, working on backup and migration data platform for Microsoft partner with Azure cloud ecosystem. I’m interested in this role (SWE Desktop/Native) because it *algined with my experience* with background agents, distributed communication agents, networking, and security platform.
-### What interests you about Twin Signal and this Desktop/Native role?
-> What draws me to Twin Signal is The Desktop/Native role is close to the work I've done before, where I  built and shipped a Windows/Linux app, worked on installer/update pipeline. Also at the same time, I'm looking to go deeper in this area. In my last role I worked on one Azure platform frequency, so this position would let me own more of native architecture, cross-platform behavior, performance, system-level integration."
-### Your recent work is mainly backend development. How does it prepare you for building endpoint agents? 
-> *share several common aspects*, *valuable knowledge when bring it on*
 ---
+
 ## 5–15 minutes: Your experience and project ownership.
 ### Walk us through the product you worked on at OPSWAT. What did you personally own?
 > The product its an intrusion detection system for OT industrial. It had three tiers: Sensor, Site, and Enterprise. Data flowed upward from Sensor to Enterprise. **(Sensor)** is the data collection layer, At this layer I developed full lifecyle agents that capture packets and recognize Siemens, Schneider devices and its communication on network segments, packaged the installers for both Win/Lin platforms. **(Site)** is the processing and management layer. It receives normalized data from Sensors and builds the core model. I worked on features manage devices and proflies of them. I also built connection visualization, showing relationships between assets as a graph. I also worked on policy management and enforcement: when a policy was violated, Site could trigger a alert and integrated 3rd-party NAC, firewalls, or Aruba ClearPass to make an action, enrichment data integrate with ServiceNow or Cisco Miraki. **(Enterprise)** sits on top and provides centralized management across Sites: visibility, and configuration. I built parts of the dashboard for the cross-Site view. I worked on centralized configuration management, so settings could be pushed to multiple Sites from one place."
 => Possible asking how components comunication
 ### Tell us about a Windows service or background service you developed.
-> Building the Sensor agent involved several stages. On the development side, I worked on the background service that ran on both Windows and Debian Linux. I implemented its connection and handshake with our Site backend, along with some of its core data extraction and normalization work. I also worked on the service lifecycle. On Windows, I registered it with the Service Control Manager. On Debian, I wrote the systemd unit and configured the service user and file permissions. I handled behavior such as reconnecting when Site was unavailable, stopping cleanly, and recovering after a crash. Beyond the service itself, I was involved in packaging and security, which I can go into depending on what you’d like to focus on.
-<!-- One thing I dealt with was [a real problem: e.g., permissions needed for packet capture, a service that hung on shutdown, a reconnect loop that hammered the backend, data lost during a restart] and I [what you did to fix it, plus the result]." -->
-=> Possible asking detail to Windows Services/Daemons services
-### What was your involvement in MSI installers and software releases?
-> I worked on our Windows and Linux agents from end to end. I wrote the customs Dialog UI installer wizard and handle the packaging pipeline. For every build I guarantee fresh installs and upgrades artifacts work well on staging env, checked perquisites work that the service started, that it connected back to the backend, and that the existing config survived the update. When something go wrong, I was the one debugging it. On releases, I was part of the sign-off. I verified the build, confirmed test results, signed off on the installer side while the final call sat with devops. That all the scope I was involvement
-<!-- (For example, a config being overwritten on upgrade, a service not connect to Site after an update, a rollback that left things half-installed, and what you did about it.) -->
-=> Possible asking debug with production
+
 
 ## 15–30 minutes: Services, OS fundamentals, and backend communication
 
-### 1. How would you choose how components communicate?
+### How would you choose how components communicate?
 > "We used three mechanisms, chosen by the nature of the data: REST API for stateless request/response: configuration push, queries, dashboard data. Simple, cacheable, easy to retry. Sockets for low-latency, high-frequency signals: heartbeats and status. If one is lost, the next one replaces it, so occasional loss is acceptable. Message queue for critical data like alerts and asset events. Messages are persisted and acknowledged, so if the network drops between tiers, nothing is lost and the queue redelivers after reconnect. Because redelivery can cause duplicates, consumers dedupe with message IDs (idempotent processing).
 
+### Integration
+I have solid experience designing and consuming REST APIs, and I’ve integrated with several third-party systems.
+
+In my previous work, I integrated with platforms and SDKs such as ServiceNow, Cisco Meraki, Siemens, Schneider Electric, and Rockwell Automation. Depending on the integration, I worked with REST APIs or vendor SDKs, handled authentication, mapped external data into our internal models, processed errors and timeouts, and made sure the integration could recover when the external system was temporarily unavailable.
+
+I haven’t directly implemented an identity-provider integration such as Okta or Entra ID yet. However, I’m familiar with the core concepts such as OAuth 2.0, OIDC, JWTs, claims, roles, and token validation, so I’m confident I could pick up that part quickly from an existing implementation and documentation.
+
+### local data storage
+Mục này họ thường **không kỳ vọng bạn là security engineer chuyên cryptography**. Với role endpoint/agent, họ muốn biết bạn có tư duy đúng về việc **agent lưu dữ liệu local và giữ secret an toàn**.
+
+Cụ thể họ thường expect bạn hiểu 4 phần:
+
+- **Local data storage**: agent lưu config, cache, state, logs, queue ở đâu; ví dụ SQLite hoặc file local. Biết dữ liệu nào là bình thường và dữ liệu nào là sensitive.
+- **Secure credential storage**: không hard-code password/API key/token trong source hoặc plain-text config. Trên Windows có thể dùng DPAPI/Credential Manager; Linux có permission-restricted files hoặc keyring/secret service.
+- **Encryption at rest / in transit**: at rest là dữ liệu nằm trên disk; in transit là dữ liệu đang truyền qua network. In transit thường dùng HTTPS/TLS và certificate validation.
+- **Secrets management**: production secret nên lấy từ environment/secret store như Azure Key Vault, thay vì commit vào repo; access theo least privilege và có rotation.
+
+Một câu trả lời interview phù hợp với level của bạn:
+
+I’m familiar with the main security principles around local storage and secret management.
+
+For local data, I’ve worked with configuration files, local databases, caches, and logs, and I understand that sensitive data should be handled differently from normal application state.
+
+For credentials and tokens, I would avoid storing them in plain text or hard-coding them in source code. On Windows, I would prefer OS-provided mechanisms such as DPAPI or Credential Manager, and on Linux I would use restricted file permissions or an appropriate secret store.
+
+For data in transit, I’ve worked with HTTPS and TLS-based communication between services, including certificate validation.
+
+For backend secrets, I’m familiar with using environment variables or a managed secret store such as Azure Key Vault, with access limited based on least privilege.
+
+I haven’t implemented every OS-specific credential-storage mechanism directly, but I understand the security model and how I would approach it.
+
+Nếu họ đào sâu, các câu rất dễ gặp là:
+
+1. “Where would you store an access token on a Windows endpoint?”
+2. “Why is storing secrets in appsettings.json risky?”
+3. “What is the difference between encryption at rest and in transit?”
+4. “How would you protect a local SQLite database?”
+5. “What is DPAPI?”
+6. “How would you protect secrets on Linux?”
+7. “How do you rotate a secret?”
+8. “Why is TLS certificate validation important?”
+
+Với JD này, bạn chỉ cần nắm chắc **DPAPI, file permissions, TLS/HTTPS, secret stores, environment variables, least privilege và secret rotation** là đủ foundation tốt cho mức 2.5 năm kinh nghiệm.
+
+<!--
 ### 2. What is different about a Windows service or Linux daemon?
 
 > It runs in the background and can run without an interactive user logging in. On Windows, the Service Control Manager manages the service. On Debian, systemd can manage it. It still runs under an account with defined permissions. I would configure startup and recovery, and make sure the application handles shutdown properly. Running in the background does not mean it has unrestricted access.
@@ -157,12 +221,11 @@
 - [Microsoft: Retry pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/retry) — transient failures, retry delays, and idempotency.
 - [Microsoft: Service accounts](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-service-accounts) — service identities and account selection.
 
----
+----->
 
-## 45–55 minutes: Testing, ownership, and teamwork
 ### Your strongest language is C#. How comfortable are you with Rust or Go?
-"C# is my strongest language, but I don't see switching languages as a big obstacle. The core concepts carry over: types, concurrency, memory, error handling, and API design. What changes is the idioms, like goroutines in Go or ownership in Rust. To get productive in your codebase, I'd read the existing code and tests first, then take a small ticket and ship it with review feedback. I also use AI to explain unfamiliar idioms and translate C# patterns into idiomatic Go or Rust, and I always check its output against the docs and code review so I'm actually learning the language."
-### How would you investigate high CPU or memory usage on a customer’s device?
+C# is my strongest language, but I don't see switching languages as a big obstacle. The core concepts carry over: types, concurrency, memory, error handling, and API design. What changes is the idioms, like goroutines in Go or ownership in Rust. To get productive in your codebase, I'd read the existing code and tests first, then take a small ticket and ship it with review feedback. I also use AI to explain unfamiliar idioms and translate C# patterns into idiomatic Go or Rust, and I always check its output against the docs and code review so I'm actually learning the language.
+<!--### How would you investigate high CPU or memory usage on a customer’s device?
 "I'd start by finding out which process, version, and devices are affected, and when it began. On the device, I'd use `htop` on Linux or Task Manager on Windows to see what's using CPU or RAM and whether it keeps growing. I'd also add a simple health check to the agent that reports its own CPU and RAM every minute to our monitoring, with an alert if it stays above a threshold, and let systemd or the Windows service settings restart it if it crashes. Then I'd check the logs around when the problem began, and if needed, take memory dumps to see what's growing. To reproduce it, I'd run the same version and config in a test environment and leave it running for a few hours while watching CPU and memory. After fixing it, I'd add an alert so we catch it earlier next time."
 ### Describe a difficult production bug. How did you find the root cause and verify the fix?
 "We had a production issue where the connection between our components kept dropping, and it was hard to reproduce. Some devices would just stop sending data.
@@ -176,7 +239,8 @@ To prevent it from happening again, I added a test that checks the socket is cre
 My notice period is 30 days, starting from the day I accept the offer, so I could start right after that. I'm comfortable working remotely and I'm used to collaborating that way.
 ### Tell us about a disagreement over a technical approach.
 ### How do you handle unclear requirements, a blocker, or a deadline at risk?
-### Why are you considering leaving AvePoint so soon?
+### Why are you considering leaving AvePoint so soon?-->
+
 ## 60+ minutes: Ref.
 ### Describe a deepfake project that you have worked on?
 "I worked on a research project about spotting deepfakes, mainly to protect face login on phones. The problem is that fake videos are getting very realistic, and tools that look for just one kind of clue often fail when the video is compressed or filmed with different cameras.
@@ -420,52 +484,117 @@ Paired with `backup.service`.
 - Writable unit files or writable `ExecStart` binaries owned by non-root are a privilege-escalation vector (analogous to weak service permissions on Windows).
 - Services running as root without sandboxing are high-value targets; prefer unprivileged users plus hardening directives.
 
-1. **What is a Windows Service?**  
-A Windows Service is a background process managed by the **Service Control Manager (SCM)**. It can start automatically with Windows, run without a logged-in user, and be started, stopped, or restarted by the OS.
+# Networking Foundations
 
-2. **What is a Linux daemon?**  
-A Linux daemon is a long-running background process. On modern Linux systems, it is commonly managed by **systemd**, which controls startup, shutdown, restart behavior, dependencies, and logging.
+Your overall mental model is heading in the right direction, but there are a few important corrections—especially **routing, sockets, WebSocket, VPN, and ZTNA**. For an interview, I’d phrase them like this:
 
-3. **Windows Service vs Linux daemon?**  
-They solve the same problem: running and managing background applications. Windows uses SCM, while Linux commonly uses systemd.
+| Topic | Interview-ready understanding |
+|---|---|
+| **TCP vs UDP** | Both are **transport-layer protocols**. **TCP** provides a reliable, ordered byte stream: it establishes a connection, tracks sequence numbers, acknowledges data, and retransmits lost data. **UDP** sends independent datagrams with no built-in guarantee of delivery, ordering, or retransmission, trading reliability features for lower overhead and latency. |
+| **DNS** | DNS translates human-friendly domain names such as `google.com` into information computers can use, most commonly IP addresses such as `142.x.x.x`. Think of it as the Internet's distributed naming system. |
+| **Routing** | Routing is **not the `/api/users` part of a URL** at the networking level. Network routing decides **which path packets take between networks**, based primarily on destination IP addresses and routing tables. URL routing like `/api/users` happens later at the application/server level. |
+| **Ports** | An IP identifies a **machine/network interface**, while a port identifies a particular network service/process endpoint on that machine. For example `192.168.1.10:443`: IP → machine, port `443` → service listening there. |
+| **Sockets** | A socket is the **programming abstraction/API** applications use to communicate over the network. You can create a TCP socket or UDP socket. A network connection is commonly identified by protocol + source IP/port + destination IP/port. |
+| **HTTP** | HTTP is an **application-layer request/response protocol**. HTTP/1.1 and HTTP/2 normally run over TCP. HTTP itself is stateless: each request contains the information needed to process it, although applications can maintain state using cookies, tokens, sessions, databases, etc. HTTP/3 is different: it runs over QUIC, which uses UDP. |
+| **WebSocket** | WebSocket gives the client and server a **persistent, full-duplex connection**, allowing either side to send messages at any time. Important correction: traditional WebSocket normally runs over **TCP, not UDP**. It usually begins with an HTTP handshake and then upgrades the connection to WebSocket. |
+| **Firewall** | A firewall enforces rules controlling network traffic. Rules can consider things like source/destination IP, ports, protocol, connection state, application, interface, etc., and decide whether traffic is allowed or blocked. |
+| **VPN** | A VPN is **not simply a proxy**. It creates an encrypted tunnel between your device and another network/VPN gateway. It can route some or all network traffic through that tunnel, making your device logically connected to the remote/private network. |
+| **ZTNA** | Zero Trust Network Access provides access based on **identity, device posture, policy, and context**, rather than trusting someone merely because they are connected to the corporate network. Typically, it grants access to specific applications/resources instead of giving broad network access like a traditional VPN. |
 
-4. **What is a process?**  
-A process is a running instance of a program. It has its own memory space, OS resources, security context, and one or more threads.
+## The biggest corrections to your current understanding
 
-5. **Process vs thread?**  
-A process provides isolation. A thread is an execution unit inside a process. Threads in the same process share memory, which makes communication fast but also creates synchronization problems such as race conditions.
+Your **TCP/UDP** understanding is basically correct, but say **"reliability and ordering"** rather than "TCP doesn't drop messages." Packets can absolutely be lost underneath TCP. TCP detects the loss and retransmits them.
 
-6. **What happens when a service crashes?**  
-The process terminates and the OS releases its process resources. SCM or systemd can detect the failure and restart the service based on its recovery configuration. The application itself should also be able to recover its previous state safely.
-
-7. **How should a service shut down?**  
-It should use graceful shutdown: stop accepting new work, finish or checkpoint current work, close connections, save important state, release resources, and then exit.
-
-8. **What happens if the network connection is lost?**  
-The service should normally keep running. Network failure should not mean service failure. The agent can retry the connection with backoff and synchronize again when connectivity returns.
-
-9. **What is user mode vs kernel mode?**  
-Applications normally run in **user mode**, where access is restricted. The operating system kernel runs in **kernel mode**, where it can access hardware and protected system resources. Applications request kernel operations through system calls.
-
-10. **What does least privilege mean for a service?**  
-A service should run with only the permissions it actually needs. Running everything as Administrator, root, or SYSTEM increases security risk. Privileged operations should be limited and isolated when possible.
-
-The core mental model to remember is:
+Your **routing** definition is mixing three different concepts:
 
 ```text
-Machine boots
-    ↓
-SCM / systemd
-    ↓
-Starts background service
-    ↓
-Process runs
-    ↓
-Threads execute work
-    ↓
-Service communicates with OS/network
-    ↓
-Handles failure gracefully
-    ↓
-SCM/systemd can restart it if necessary
+https://api.example.com:443/users/123
+  │            │        │    │
+protocol      host     port  application path
+                │
+                └── DNS resolves this to an IP
+                         │
+                         ▼
+                    10.20.30.40
+                         │
+                    IP routing
+                         │
+                         ▼
+                     server
+                         │
+                    TCP port 443
+                         │
+                    HTTP server
+                         │
+                   /users/123
 ```
+
+So think:
+
+**DNS → "What IP?"**
+
+**Routing → "How do packets reach that IP?"**
+
+**Port → "Which service on that machine?"**
+
+**Socket → "How does my program communicate using TCP/UDP?"**
+
+**HTTP path → "Which application resource/handler?"**
+
+And your biggest technical error was here:
+
+> WebSocket ... based on UDP
+
+Change that to:
+
+> **WebSocket normally runs over TCP. It starts with an HTTP handshake and then maintains a persistent bidirectional connection.**
+
+## VPN vs ZTNA
+
+This difference is particularly likely to matter for the endpoint-agent role you're preparing for.
+
+```text
+Traditional VPN
+
+Laptop
+   │
+   │ encrypted tunnel
+   ▼
+Corporate Network
+   ├── Server A
+   ├── Server B
+   ├── Database
+   └── Internal apps
+```
+
+Once connected, VPNs traditionally give the device **network-level connectivity**, though firewall rules and segmentation can restrict it.
+
+ZTNA approaches the problem differently:
+
+```text
+User + Device
+      │
+      ├── Who are you?
+      ├── Is this device trusted/compliant?
+      ├── Are you allowed to access App A?
+      │
+      ▼
+   ZTNA Policy
+      │
+      ▼
+    App A
+
+Not necessarily:
+      │
+      └──────────► entire corporate network
+```
+
+So a strong interview answer would be:
+
+> **"A traditional VPN establishes an encrypted tunnel and usually gives the device network-level access to a private network. ZTNA follows zero-trust principles: it continuously evaluates identity, device posture, and policy, and grants access to specific resources rather than implicitly trusting a device because it's inside the network."**
+
+For your interview, I'd memorize the networking stack in roughly this order:
+
+**DNS → IP → routing → TCP/UDP → ports/sockets → TLS → HTTP/WebSocket → application**
+
+Then separately understand **firewall → VPN → ZTNA**, because those are about **controlling and securing that communication**.
