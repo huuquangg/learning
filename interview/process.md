@@ -10,7 +10,8 @@ I’m interested in this role (SWE Desktop/Native) because it *algined with my e
 
 ---
 
-## 5–15 minutes: Your experience and project ownership
+## 5–15 minutes: Your experience and project ownership.
+
 ### “Walk us through the architecture of the product you worked on at OPSWAT. What did you personally own?”
 "The product ít was an intrusion detection system for industrial and enterprise networks. It had three tiers: Sensor, Site, and Enterprise. Data flowed upward from Sensor to Enterprise.
 - Sensor is the data collection layer, At this layer I developed agents that capture packets and recognize Siemens, Schneider devices assets and the communication on specific network segments, packaged the installers for both platforms, WiX for Windows and .deb for Linux and distribute and mornitoring the service lifecycle.
@@ -21,7 +22,8 @@ I’m interested in this role (SWE Desktop/Native) because it *algined with my e
 I developed Sensor agents that ran as background services on Windows and Debian Linux. On Windows, the Service Control Manager started and supervised the service. On Debian, systemd did that job.
 The agent captures network traffic, normalizes the data, and sends it to Site over an authenticated connection. On Windows, it runs under the service account configured in the Service Control Manager (SCM), such as LocalSystem if the deployment requires it. On Linux, it runs as the user specified in the systemd unit. Access to the agent's files is controlled through file ownership and permissions (chown/chmod on Linux, NTFS ACLs on Windows). Packet capture requires the appropriate OS permissions.
 When the service receives a stop request, it closes its connections and releases its resources. If the connection to Site drops, the agent retries. If the process fails, SCM or systemd can restart it when recovery is configured, and the agent reconnects to Site.
-### “What was your involvement in MSI installers and software releases?”
+
+### “What was your involvement in MSI installers and software releases?” 
 - How did installation and upgrades work?
 - What happened if an upgrade failed?
 I worked on packaging and release scenarios for both Windows and Linux agents. For a fresh install, we used an MSI on Windows and a DEB on Debian. Each installed the agent, registered its service, and then we checked that the service started and connected.
