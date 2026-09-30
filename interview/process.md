@@ -2,6 +2,10 @@
 ## Tell us about yourself and your relevant experience? (100%)
 > I’m Quang, *a software engineer with two and a half years of experience* building distributed systems. Previously, *At OPSWAT*, I worked on an ids which is make of 3 components: Enterprise, Site, and Sensor. On the Sensor, agents running on Windows and Linux that captured network traffic and sent it to Site. At Site, the data was modeling for asset, connection, and policy, and vulnerability. Enterprise provided centralized management across multiple Sites. I’m now at *AvePoint*, working on backup and migration data platform for Microsoft partner with Azure cloud ecosystem. I’m interested in this role (SWE Desktop/Native) because it *algined with my experience* with background agents, distributed communication agents, networking, and security platform.
 ---
+## 5–10 minutes: Your experience and project ownership.
+### Walk us through the product you worked on at OPSWAT. What did you personally own?
+> The product its an intrusion detection system for OT industrial. It had three tiers: Sensor, Site, and Enterprise. Data flowed upward from Sensor to Enterprise. **(Sensor)** is the data collection layer, At this layer I developed full lifecyle agents that capture packets and recognize Siemens, Schneider devices and its communication on network segments, packaged the installers for both Win/Lin platforms. **(Site)** is the processing and management layer. It receives normalized data from Sensors and builds the core model. I worked on features manage devices and proflies of them. I also built connection visualization, showing relationships between assets as a graph. I also worked on policy management and enforcement: when a policy was violated, Site could trigger a alert and integrated 3rd-party NAC, firewalls, or Aruba ClearPass to make an action, enrichment data integrate with ServiceNow or Cisco Miraki. **(Enterprise)** sits on top and provides centralized management across Sites: visibility, and configuration. I built parts of the dashboard for the cross-Site view. I worked on centralized configuration management, so settings could be pushed to multiple Sites from one place."
+---
 # Required Qualifications
 [Languages](#languages)
 - Proficiency in at least one relevant systems/native language, such as Rust, Go, or a comparable language
@@ -36,17 +40,12 @@
 - ~~3+ years of professional software engineering experience for mid-level candidates, or 5+ years for senior-level candidates.~~
 - ~~Experience with Git, code review, automated testing, build tooling, and software release practices.~~
 - ~~Excellent analytical, organizational, prioritization, documentation, and collaboration skills~~
-- Experience with Docker, CI/CD pipelines, infrastructure-as-code, or deployment automation
+- ~~Experience with Docker, CI/CD pipelines, infrastructure-as-code, or deployment automation~~
 - ~~(Preferred) Knowledge of secure software development, threat modeling, encryption, secrets management, and data privacy/compliance practices (e.g., SOC 2, ISO 27001).~~ 
 - ~~(Preferred) Experience with policy engines, rules evaluation systems, or attribute-based access control implementations~~
 - ~~(Preferred) Experience working in a security product, consulting, or distributed-team environment~~ 
 - ~~(Preferred) Prior experience mentoring developers or leading small technical initiatives~~ 
-
-## 5–10 minutes: Your experience and project ownership.
-### Walk us through the product you worked on at OPSWAT. What did you personally own?
-> The product its an intrusion detection system for OT industrial. It had three tiers: Sensor, Site, and Enterprise. Data flowed upward from Sensor to Enterprise. **(Sensor)** is the data collection layer, At this layer I developed full lifecyle agents that capture packets and recognize Siemens, Schneider devices and its communication on network segments, packaged the installers for both Win/Lin platforms. **(Site)** is the processing and management layer. It receives normalized data from Sensors and builds the core model. I worked on features manage devices and proflies of them. I also built connection visualization, showing relationships between assets as a graph. I also worked on policy management and enforcement: when a policy was violated, Site could trigger a alert and integrated 3rd-party NAC, firewalls, or Aruba ClearPass to make an action, enrichment data integrate with ServiceNow or Cisco Miraki. **(Enterprise)** sits on top and provides centralized management across Sites: visibility, and configuration. I built parts of the dashboard for the cross-Site view. I worked on centralized configuration management, so settings could be pushed to multiple Sites from one place."
-=> Possible asking how components comunication
-
+--- 
 ## 15–30 minutes:
 ### Tell us about a Windows service or Linux/Daemons background service you developed.
 
@@ -282,13 +281,16 @@ Paired with `backup.service`.
 - Services running as root without sandboxing are high-value targets; prefer unprivileged users plus hardening directives.
 
 ---
+
 ## communication
 ### How would you choose how components communicate?
-> "We used three mechanisms, chosen by the nature of the data: REST API for stateless request/response: configuration push, queries, dashboard data. Simple, cacheable, easy to retry. Sockets for low-latency, high-frequency signals: heartbeats and status. If one is lost, the next one replaces it, so occasional loss is acceptable. Message queue for critical data like alerts and asset events. Messages are persisted and acknowledged, so if the network drops between tiers, nothing is lost and the queue redelivers after reconnect. Because redelivery can cause duplicates, consumers dedupe with message IDs (idempotent processing).
+> We used three mechanisms, chosen by the nature of the data: REST API for stateless request/response: configuration push, queries, dashboard data. Simple, cacheable, easy to retry. Sockets for low-latency, high-frequency signals: heartbeats and status. If one is lost, the next one replaces it, so occasional loss is acceptable. Message queue for critical data like alerts and asset events. Messages are persisted and acknowledged, so if the network drops between tiers, nothing is lost and the queue redelivers after reconnect. Because redelivery can cause duplicates, consumers dedupe with message IDs (idempotent processing).
+---
 
 ## Languages
 ### Your strongest language is C#. How comfortable are you with Rust or Go?
-C# is my strongest language, but I don't see switching languages as a big obstacle. The core concepts carry over: types, concurrency, memory, error handling, and API design. What changes is the idioms, like goroutines in Go or ownership in Rust. I also use AI to explain unfamiliar idioms and translate C# patterns into idiomatic Go or Rust, and I always check its output against the docs and code review so I'm actually working with the language.
+> C# is my strongest language, but I don't see switching languages as a big obstacle. The core concepts carry over: types, concurrency, memory, error handling, and API design. What changes is the idioms, like goroutines in Go or ownership in Rust. I also use AI to explain unfamiliar idioms and translate C# patterns into idiomatic Go or Rust, and I always check its output against the docs and code review so I'm actually working with the language.
+---
 
 ## Networking Foundations
 | Topic | Interview-ready understanding |
@@ -307,14 +309,15 @@ C# is my strongest language, but I don't see switching languages as a big obstac
 ### VPN vs ZTNA
 
 So a strong interview answer would be:
-> **"A traditional VPN establishes an encrypted tunnel and usually gives the device network-level access to a private network. ZTNA follows zero-trust principles: it continuously evaluates identity, device posture, and policy, and grants access to specific resources rather than implicitly trusting a device because it's inside the network."**
+> A traditional VPN establishes an encrypted tunnel and usually gives the device network-level access to a private network. ZTNA follows zero-trust principles: it continuously evaluates identity, device posture, and policy, and grants access to specific resources rather than implicitly trusting a device because it's inside the network.
+---
 
 ## 3rd party integration
-I have solid experience designing and consuming REST APIs, and I’ve integrated with several third-party systems.
-
+> I have solid experience designing and consuming REST APIs, and I’ve integrated with several third-party systems.
 In my previous work, I integrated with platforms and SDKs such as ServiceNow, Cisco Meraki, Aruba ClearPass, Siemens, Schneider Electric, and Rockwell Automation. Depending on the integration, I worked with REST APIs or vendor SDKs, handled authentication, mapped external data into our internal models, processed errors and timeouts, and made sure the integration could recover when the external system was temporarily unavailable.
-
 I haven’t directly implemented an identity-provider integration such as Okta or Entra ID yet. However, I’m familiar with the anothers third party integration so I’m confident I could pick up that part quickly.
+
+---
 
 ## Credentials
 Mục này họ thường **không kỳ vọng bạn là security engineer chuyên cryptography**. Với role endpoint/agent, họ muốn biết bạn có tư duy đúng về việc **agent lưu dữ liệu local và giữ secret an toàn**.
@@ -342,7 +345,17 @@ Secrets management
 
 ## Scenarios
 ### How would you investigate high CPU or memory usage on a customer’s device?
-"I'd start by finding out which process, version, and devices are affected, and when it began. On the device, I'd use `htop` on Linux or Task Manager on Windows to see what's using CPU or RAM and whether it keeps growing. I'd also add a simple health check to the agent that reports its own CPU and RAM every minute to our monitoring, with an alert if it stays above a threshold, and let systemd or the Windows service settings restart it if it crashes. Then I'd check the logs around when the problem began, and if needed, take memory dumps to see what's growing. To reproduce it, I'd run the same version and config in a test environment and leave it running for a few hours while watching CPU and memory. After fixing it, I'd add an alert so we catch it earlier next time."
+> I'd start by finding out which process, version, and devices are affected, and when it began. On the device, I'd use `htop` on Linux or Task Manager on Windows to see what's using CPU or RAM and whether it keeps growing. I'd also add a simple health check to the agent that reports its own CPU and RAM every minute to our monitoring, with an alert if it stays above a threshold, and let systemd or the Windows service settings restart it if it crashes. Then I'd check the logs around when the problem began, and if needed, take memory dumps to see what's growing. To reproduce it, I'd run the same version and config in a test environment and leave it running for a few hours while watching CPU and memory. After fixing it, I'd add an alert so we catch it earlier next time.
+
+### How would you keep an agent reliable over a long time?
+> I would avoid busy loops, limit concurrent work and queue sizes, and release resources when they are no longer needed. I would add useful logs and monitor memory, CPU, and recent successful activity. Expected failures, such as a temporary network problem, should be handled. The service manager can restart a crashed process, but a process that is alive and stuck needs a separate health check.
+
+### Describe a difficult production bug. How did you find the root cause and verify the fix?
+> We had a production issue where the connection between our components kept dropping, and it was hard to reproduce. Some devices would just stop sending data.
+Our socket was supposed to exist only once in the whole app, but the dependency injection setup was quietly creating a second copy without any error. One copy kept the live connection, and the other was the one some parts of the code were actually using. When the wrong one lost its connection, everything depending on it went silent.
+To find it, I looked at the logs around the drops and noticed the connection behaved as if it were two different objects. So I added logging in the constructor to see how many times it got created. It showed up twice, which confirmed the cause. Then I traced it back to how we registered it,it was registered in two different ways, so the system built one for each'.
+I fixed the registration so only one instance exists, then checked it by running the same scenario that used to fail, and the constructor now logged only once. Nothing dropped over.
+To prevent it from happening again, I added a test that checks the socket is created only once / added a startup check / documented how to register shared services.
 
 <!--
 ### 2. What is different about a Windows service or Linux daemon?
@@ -362,10 +375,6 @@ Secrets management
 > At startup, I would validate configuration and initialize the resources the service needs. Startup ordering helps with local dependencies, but it does not guarantee a remote backend is ready. I would handle that with connection retries. During shutdown, I would stop accepting new work, signal cancellation, give current work a limited time to finish, and close connections and files.
 
 **Remember:** Initialize → handle unavailable dependencies → cancel and clean up.
-
-### 5. How would you keep an agent reliable over a long time?
-
-> I would avoid busy loops, limit concurrent work and queue sizes, and release resources when they are no longer needed. I would add useful logs and monitor memory, CPU, and recent successful activity. Expected failures, such as a temporary network problem, should be handled. The service manager can restart a crashed process, but a process that is alive and stuck needs a separate health check.
 
 **Remember:** Bounded work → resource cleanup → health checks → recovery.
 
@@ -442,10 +451,6 @@ Secrets management
 
 **Remember:** Who are you? → What may you do? → Roles or attributes.
 
-### 7. What is the difference between VPN and ZTNA?
-
-> A VPN creates a protected connection and can provide access to a network, with the scope controlled by its configuration and access rules. ZTNA focuses on granting access to particular resources based on identity and policy, often including device checks. I understand the basic difference, but for a specific product I would need to learn its connection flow and how the agent integrates with it.
-
 **Remember:** VPN → protected network connection; ZTNA → policy-based access to resources.
 
 **Experience boundary:** State any actual integration you have done separately; knowing these concepts does not mean you have built a VPN or ZTNA client.
@@ -475,21 +480,6 @@ Secrets management
 
 ----->
 
-
-<!--
-### Describe a difficult production bug. How did you find the root cause and verify the fix?
-"We had a production issue where the connection between our components kept dropping, and it was hard to reproduce. Some devices would just stop sending data.
-Our socket was supposed to exist only once in the whole app, but the dependency injection setup was quietly creating a second copy without any error. One copy kept the live connection, and the other was the one some parts of the code were actually using. When the wrong one lost its connection, everything depending on it went silent.
-To find it, I looked at the logs around the drops and noticed the connection behaved as if it were two different objects. So I added logging in the constructor to see how many times it got created. It showed up twice, which confirmed the cause. Then I traced it back to how we registered it,it was registered in two different ways, so the system built one for each'.
-I fixed the registration so only one instance exists, then checked it by running the same scenario that used to fail, and the constructor now logged only once. Nothing dropped over.
-To prevent it from happening again, I added a test that checks the socket is created only once / added a startup check / documented how to register shared services."
-
-### How would you test an agent that changes OS settings or runs with elevated privileges?
-"I'd test it in layers and never run anything that changes real OS settings on my own machine. For unit tests, I'd cover the logic, like validating a command, retry behavior, and checking whether a command was already run, and I'd put the OS calls (registry, files, services) behind interfaces so I can mock them, which keeps the tests fast and safe with no admin rights. Anything that really changes the OS, like editing a setting or running as admin or root, I'd test in a disposable VM, restoring a clean snapshot before each run, and check that the change happened and can be undone. For crashes, I'd kill the process mid-action, restart it, and check that it recovers and doesn't run the command twice. For network loss, I'd disconnect the backend and confirm it saves work locally and sends it when the connection returns. For upgrades, I'd install the old version, upgrade to the new one, and check that settings and data still work."
-### Tell us about a disagreement over a technical approach.
-### How do you handle unclear requirements, a blocker, or a deadline at risk?
-### Why are you considering leaving AvePoint so soon?-->
-
 ## 60+ minutes
 ### Describe a deepfake project that you have worked on?
 "I worked on a research project about spotting deepfakes, mainly to protect face login on phones. The problem is that fake videos are getting very realistic, and tools that look for just one kind of clue often fail when the video is compressed or filmed with different cameras.
@@ -499,5 +489,6 @@ My notice period is 30 days, starting from the day I accept the offer, so I coul
 ### Question with no idea?
 Kubernetes (never used):
 > "I haven't run Kubernetes in production. The closest thing I've done is packaging and managing service lifecycles with WiX and .deb installers. My understanding is that Kubernetes automates deployment, scaling, and restarts of containers. I'd start with a small local cluster like minikube to learn the core concepts, then deploy a simple service. Is that the kind of scenario you have in mind?"
+
 Kafka (never used):
 > "I haven't used Kafka directly. I've worked with RabbitMQ message queues for reliable delivery between tiers, so I understand acknowledgments and redelivery. My understanding is that Kafka is a distributed log built for high throughput and replay. I'd read up on partitions and consumer groups first, then prototype with a small topic."
