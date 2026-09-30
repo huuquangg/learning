@@ -2,10 +2,12 @@
 ## Tell us about yourself and your relevant experience? (100%)
 > I’m Quang, *a software engineer with two and a half years of experience* building distributed systems. Previously, *At OPSWAT*, I worked on an ids which is make of 3 components: Enterprise, Site, and Sensor. On the Sensor, agents running on Windows and Linux that captured network traffic and sent it to Site. At Site, the data was modeling for asset, connection, and policy, and vulnerability. Enterprise provided centralized management across multiple Sites. I’m now at *AvePoint*, working on backup and migration data platform for Microsoft partner with Azure cloud ecosystem. I’m interested in this role (SWE Desktop/Native) because it *algined with my experience* with background agents, distributed communication agents, networking, and security platform.
 ---
-## 5–10 minutes: Your experience and project ownership.
-### Walk us through the product you worked on at OPSWAT. What did you personally own?
+
+# 5–10 minutes: Your experience and project ownership.
+## Walk us through the product you worked on at OPSWAT. What did you personally own?
 > The product its an intrusion detection system for OT industrial. It had three tiers: Sensor, Site, and Enterprise. Data flowed upward from Sensor to Enterprise. **(Sensor)** is the data collection layer, At this layer I developed full lifecyle agents that capture packets and recognize Siemens, Schneider devices and its communication on network segments, packaged the installers for both Win/Lin platforms. **(Site)** is the processing and management layer. It receives normalized data from Sensors and builds the core model. I worked on features manage devices and proflies of them. I also built connection visualization, showing relationships between assets as a graph. I also worked on policy management and enforcement: when a policy was violated, Site could trigger a alert and integrated 3rd-party NAC, firewalls, or Aruba ClearPass to make an action, enrichment data integrate with ServiceNow or Cisco Miraki. **(Enterprise)** sits on top and provides centralized management across Sites: visibility, and configuration. I built parts of the dashboard for the cross-Site view. I worked on centralized configuration management, so settings could be pushed to multiple Sites from one place."
 ---
+
 # Required Qualifications
 [Languages](#languages)
 - Proficiency in at least one relevant systems/native language, such as Rust, Go, or a comparable language
@@ -16,7 +18,7 @@
 - Solid understanding of networking fundamentals: TCP/IP, DNS, routing, firewalls, VPN protocols, and/or ZTNA concepts.
 - ~~(Preferred) Experience building agents/clients for RMM (remote monitoring and management), EDR/XDR, MDM, VPN, or ZTNA products.~~
 ---
-[OS Services](#networking-foundations)
+[OS Services](#services)
 - Hands-on experience building, shipping, and maintaining background services, daemons, system agents, or other privileged/low-footprint desktop software.
 - (Preferred) Experience with installers, silent deployment, code signing, auto-update systems, and large-scale software distribution 
 - (Preferred) Experience developing agents for multiple desktop/server operating systems, including Windows, macOS, and Linux 
@@ -46,124 +48,123 @@
 - ~~(Preferred) Experience working in a security product, consulting, or distributed-team environment~~ 
 - ~~(Preferred) Prior experience mentoring developers or leading small technical initiatives~~ 
 --- 
-## 15–30 minutes:
-### Tell us about a Windows service or Linux/Daemons background service you developed.
 
-Windows services are background processes that run independently of user login, managed by the Service Control Manager (SCM).
+# 15–55 minutes:
+## Services
+### Windows
+Runtime / boot sequence
+1. Bootloader loads windows kernel + boot-start drivers (`Start=0`) directly.
+2. Kernel finishes init, I/O manager loads system-start drivers (`Start=1`).
+3. `wininit.exe` starts `services.exe` (the [SCM](#service-control-manager-scm)) - User Mode.
+4. SCM reads the [registry](#registry-location), builds a dependency graph, and starts:
+   - Auto-start services in dependency order
+   - Delayed-auto-start services shortly after (via a separate timer, off the critical boot path)
+5. Manual-start services wait for something to request (or another service, an app, or a user via [`services.msc`/`sc start`](#manage-tool-scm)).
+  - create service [process SIDs](#service-sids-scm) by [ImagePath](#file-permissions-scm)
+  - excute main()/Program
+6. Each service process calls `StartServiceCtrlDispatcher()` early in `main()`, registering a `ServiceMain` entry point per service name — this is how one .exe can host multiple services (like `svchost.exe`).
+7. `ServiceMain` calls `RegisterServiceCtrlHandlerEx()` to receive [control codes](#lifecycle-scm) (stop, pause, shutdown, custom), then reports `SERVICE_RUNNING`.
+8. SCM polls/expects periodic status updates during pending states (`dwWaitHint`, `dwCheckPoint`) — if a service doesn't respond in time, SCM considers it hung.
 
-**Core concepts:**
-- **SCM (Service Control Manager)** — `services.exe`, runs at boot, starts/stops/monitors all services
-- **Service executable** — implements `ServiceMain()` and a control handler to respond to start/stop/pause requests
-- **Startup types**:
-  - Automatic — starts at boot
-  - Automatic (Delayed Start) — starts shortly after boot, reduces startup contention
-  - Manual — starts on demand
-  - Disabled — can't be started
-- **Service accounts** — context a service runs under:
-  - `LocalSystem` — highest privilege, full OS access
-  - `LocalService` — minimal privileges, network access as anonymous
-  - `NetworkService` — minimal privileges, network access as machine account
-  - Custom user/domain account — for specific permission needs
-- **Service SIDs / isolation** — each service can get its own SID so its resources can be locked down independently of others sharing a host process
-- **Session 0 isolation** (since Vista) — services run in Session 0, separate from user sessions, so they can't interact with the desktop
-
-**Service hosting:**
-- Standalone `.exe` per service, or
-- Shared `svchost.exe` processes — many Windows services are DLLs grouped into shared host processes to reduce overhead
-
-**Management tools:**
-- `services.msc` — GUI
-- `sc.exe` — command-line (create, config, query, start, stop)
-- `PowerShell` — `Get-Service`, `Start-Service`, `Stop-Service`, `Set-Service`, `New-Service`
-- Registry — service configs live under `HKLM\SYSTEM\CurrentControlSet\Services`
-
-**Lifecycle/state machine:**
-`Stopped → Start Pending → Running → Stop Pending → Stopped` (plus Pause/Continue states if supported)
-
-**Dependencies:** services can declare dependencies on other services or drivers; SCM starts them in the correct order.
-
-**Recovery options:** each service can define actions on failure (restart service, run a program, reboot machine), configurable per failure count.
-
-**Security-relevant notes:**
-- Weak service permissions (e.g., writable binary path, unquoted service paths) are a classic privilege-escalation vector
-- Services running as `LocalSystem` are high-value targets if compromised
-
-Here's a deeper look at the registry structure and runtime behavior of Windows services.
-
-**Registry location**
-
-All services (and drivers) are registered under:
-```
-HKLM\SYSTEM\CurrentControlSet\Services\<ServiceName>
-```
-
+#### Registry location
+All services (and drivers) are registered under: HKLM\SYSTEM\CurrentControlSet\Services\<ServiceName>
 Key values under each service key:
-- **ImagePath** — path to the executable (or driver .sys file)
-- **Start** — startup type:
+- ImagePath — path to the executable (or driver .sys file)
+- Start — startup type:
   - `0` = Boot (driver, loaded by kernel loader)
   - `1` = System (driver, loaded by I/O subsystem)
   - `2` = Automatic
   - `3` = Manual
   - `4` = Disabled
-- **Type** — what kind of service:
+- Type — what kind of service:
   - `1` = Kernel driver
   - `2` = File system driver
   - `0x10` = Own process (`SERVICE_WIN32_OWN_PROCESS`)
   - `0x20` = Shared process (`SERVICE_WIN32_SHARE_PROCESS`, i.e. svchost-hosted)
   - `0x110`/`0x120` = interactive variants (rare, legacy)
-- **ErrorControl** — what happens if the service fails to start (ignore/normal/severe/critical, affects boot behavior)
-- **ObjectName** — account the service runs as (e.g. `LocalSystem`, `NT AUTHORITY\NetworkService`, or a domain user)
-- **DependOnService** / **DependOnGroup** — dependency list
-- **DisplayName**, **Description**
-- **FailureActions** (binary blob) — recovery settings (restart/run command/reboot, reset period)
+- ErrorControl — what happens if the service fails to start (ignore/normal/severe/critical, affects boot behavior)
+- ObjectName — account the service runs as (e.g. `LocalSystem`, `NT AUTHORITY\NetworkService`, or a domain user)
+- DependOnService / DependOnGroup — dependency list
+- DisplayName, Description
+- FailureActions (binary blob) — recovery settings (restart/run command/reboot, reset period)
 
 For svchost-hosted services, there's also a `Parameters` subkey with `ServiceDll` pointing to the DLL, since the actual code isn't in an executable at ImagePath — svchost.exe is the ImagePath, and it loads the DLL.
 
-**Runtime / boot sequence**
+#### Service Control Manager (SCM)
+Windows services are background processes that run independently of user login, managed by the Service Control Manager (SCM).
+- SCM (Service Control Manager) — `services.exe`, runs at boot, starts/stops/monitors all services
+- Service executable — implements `ServiceMain()` and a control handler to respond to start/stop/pause requests
+- Startup types:
+  - Automatic — starts at boot
+  - Automatic (Delayed Start) — starts shortly after boot, reduces startup contention
+  - Manual — starts on demand
+  - Disabled — can't be started
+- Service accounts — context a service runs under:
+  - `LocalSystem` — highest privilege, full OS access
+  - `LocalService` — minimal privileges, network access as anonymous
+  - `NetworkService` — minimal privileges, network access as machine account
+  - Custom user/domain account — for specific permission needs
 
-1. Bootloader loads kernel + boot-start drivers (`Start=0`) directly.
-2. Kernel finishes init, I/O manager loads system-start drivers (`Start=1`).
-3. `wininit.exe` starts `services.exe` (the SCM).
-4. SCM reads the registry, builds a dependency graph, and starts:
-   - Auto-start services in dependency order
-   - Delayed-auto-start services shortly after (via a separate timer, off the critical boot path)
-5. Manual-start services wait for something to request `StartService()` (another service, an app, or a user via `services.msc`/`sc start`).
-6. Each service process calls `StartServiceCtrlDispatcher()` early in `main()`, registering a `ServiceMain` entry point per service name — this is how one .exe can host multiple services (like `svchost.exe`).
-7. `ServiceMain` calls `RegisterServiceCtrlHandlerEx()` to receive control codes (stop, pause, shutdown, custom), then reports `SERVICE_RUNNING` via `SetServiceStatus()`.
-8. SCM polls/expects periodic status updates during pending states (`dwWaitHint`, `dwCheckPoint`) — if a service doesn't respond in time, SCM considers it hung.
+#### Service SIDs (SCM)
+- Service SIDs / isolation — each service can get its own SID so its resources can be locked down independently of others sharing a host process
+- Session 0 isolation (since Vista) — services run in Session 0, separate from user sessions, so they can't interact with the desktop
+Service hosting:
+- Standalone `.exe` per service, or
+- Shared `svchost.exe` processes — many Windows services are DLLs grouped into shared host processes to reduce overhead
 
-**Useful runtime inspection commands**
-```
-sc query <name>            # current state
-sc qc <name>                # query config (ImagePath, start type, account)
-sc queryex <name>           # includes PID
-reg query HKLM\SYSTEM\CurrentControlSet\Services\<name>
-tasklist /svc               # map PIDs to hosted services
-Get-Service | ? Status -eq Running
-```
+#### Manage Tool (SCM)
+Management tools:
+- `services.msc` — GUI
+- `sc.exe` — command-line (create, config, query, start, stop)
+- `PowerShell` — `Get-Service`, `Start-Service`, `Stop-Service`, `Set-Service`, `New-Service`
+- Registry — service configs live under `HKLM\SYSTEM\CurrentControlSet\Services`
+
+#### Lifecycle (SCM)
+Lifecycle/state machine: `Stopped → Start Pending → Running → Stop Pending → Stopped` (plus Pause/Continue states if supported)
+
+Dependencies: services can declare dependencies on other services or drivers; SCM starts them in the correct order.
+
+Recovery options: each service can define actions on failure (restart service, run a program, reboot machine), configurable per failure count.
+
+#### File permissions (SCM)
+File and folder permissions are primarily based on NTFS ACLs.
+SYSTEM              → Full Control
+Administrators      → Full Control
+SensorServiceUser   → Modify
+Users               → Read
+Common basic permissions:
+- Read — read files, view folders.
+- Write — create/write files.
+- Read & Execute — read and run executables.
+- Modify — read + write + delete.
+- Full Control — virtually unrestricted access, including changing permissions and ownership.
+An important point is that folder permissions are typically inherited by child files and folders.
+
 ---
-Linux equivalents: daemons are background processes, and **systemd** is the init system/service manager on most modern distros (replacing SysV init and Upstart).
-**Daemon fundamentals**
+
+### Linux
+equivalents: daemons are background processes, and **systemd** is the init system/service manager on most modern distros (replacing SysV init and Upstart).
+Daemon fundamentals
 - A daemon is a long-running background process, typically with no controlling terminal, named with a trailing `d` (`sshd`, `crond`, `systemd-journald`).
-- **Classic (SysV-style) daemonization**: fork, `setsid()` to detach from the terminal, fork again (so it can't reacquire a TTY), `chdir("/")`, reset `umask`, close/redirect stdin/stdout/stderr to `/dev/null`, write a PID file.
-- **Modern approach**: don't daemonize yourself. Run in the foreground and let systemd supervise (`Type=simple`), logging to stdout/stderr (captured by journald).
+- Classic (SysV-style) daemonization: fork, `setsid()` to detach from the terminal, fork again (so it can't reacquire a TTY), `chdir("/")`, reset `umask`, close/redirect stdin/stdout/stderr to `/dev/null`, write a PID file.
+- Modern approach: don't daemonize yourself. Run in the foreground and let systemd supervise (`Type=simple`), logging to stdout/stderr (captured by journald).
 
-**Init history**
-- **SysV init**: shell scripts in `/etc/init.d/`, runlevels 0-6, symlinks in `/etc/rc*.d/`, sequential startup.
-- **Upstart**: event-driven (Ubuntu, briefly).
-- **systemd**: parallel startup, dependency-based, socket/bus/timer activation, cgroup tracking. PID 1.
+Init history
+- SysV init: shell scripts in `/etc/init.d/`, runlevels 0-6, symlinks in `/etc/rc*.d/`, sequential startup.
+- Upstart: event-driven (Ubuntu, briefly).
+- systemd: parallel startup, dependency-based, socket/bus/timer activation, cgroup tracking. PID 1.
 
-**systemd core concepts**
-- **Units** are the objects systemd manages. Types:
+systemd core concepts
+- Units are the objects systemd manages. Types:
   - `.service` — a daemon/process
   - `.socket` — socket activation
   - `.timer` — cron-like scheduling
   - `.target` — grouping/sync points (like runlevels)
   - `.mount`, `.automount`, `.device`, `.path`, `.slice`, `.scope`, `.swap`
-- **Targets**: `multi-user.target` (~runlevel 3), `graphical.target` (~5), `rescue.target`, `default.target` (symlink to the boot target).
-- **cgroups**: each service runs in its own cgroup, so systemd can track all child processes and kill them reliably on stop.
+- Targets: `multi-user.target` (~runlevel 3), `graphical.target` (~5), `rescue.target`, `default.target` (symlink to the boot target).
+- cgroups: each service runs in its own cgroup, so systemd can track all child processes and kill them reliably on stop.
 
-**Unit file locations (precedence high to low)**
+Unit file locations (precedence high to low)
 ```
 /etc/systemd/system/          # admin-created/overrides
 /run/systemd/system/          # runtime
@@ -172,7 +173,7 @@ Linux equivalents: daemons are background processes, and **systemd** is the init
 ```
 Use drop-ins (`systemctl edit foo.service` → `/etc/systemd/system/foo.service.d/override.conf`) rather than editing packaged files.
 
-**Example service unit**
+Example service unit
 ```ini
 [Unit]
 Description=My App
@@ -192,18 +193,18 @@ Environment=LOG_LEVEL=info
 WantedBy=multi-user.target
 ```
 
-**Key `[Service]` options**
-- **Type**: `simple` (default), `exec`, `forking` (classic daemon, needs `PIDFile=`), `oneshot`, `notify` (service signals readiness via `sd_notify`), `dbus`, `idle`
-- **Restart**: `no`, `on-failure`, `always`, `on-abnormal`, etc.
-- **ExecStartPre / ExecStartPost / ExecStop / ExecReload**
-- **TimeoutStartSec / TimeoutStopSec**
-- **User / Group / DynamicUser**
+Key `[Service]` options
+- Type: `simple` (default), `exec`, `forking` (classic daemon, needs `PIDFile=`), `oneshot`, `notify` (service signals readiness via `sd_notify`), `dbus`, `idle`
+- Restart: `no`, `on-failure`, `always`, `on-abnormal`, etc.
+- ExecStartPre / ExecStartPost / ExecStop / ExecReload
+- TimeoutStartSec / TimeoutStopSec
+- User / Group / DynamicUser
 
-**Dependencies and ordering** (separate concepts):
+Dependencies and ordering (separate concepts):
 - `Requires=`, `Wants=`, `BindsTo=`, `Conflicts=` — *what* gets pulled in
 - `After=`, `Before=` — *order* only
 
-**Hardening options** (a big systemd strength)
+Hardening options (a big systemd strength)
 ```
 NoNewPrivileges=yes
 ProtectSystem=strict
@@ -216,7 +217,7 @@ MemoryMax=512M
 ```
 Check the score with `systemd-analyze security myapp.service`.
 
-**Management commands**
+Management commands
 ```
 systemctl start|stop|restart|reload|status <unit>
 systemctl enable|disable <unit>      # create/remove WantedBy symlinks
@@ -230,7 +231,7 @@ systemctl --user ...                 # per-user manager
 systemctl get-default / set-default multi-user.target
 ```
 
-**Logging: journald**
+Logging: journald
 ```
 journalctl -u myapp.service -f       # follow
 journalctl -b                        # this boot
@@ -238,14 +239,14 @@ journalctl -p err --since "1 hour ago"
 journalctl -xe                       # recent errors with explanations
 ```
 
-**Boot analysis**
+Boot analysis
 ```
 systemd-analyze                      # total boot time
 systemd-analyze blame                # slowest units
 systemd-analyze critical-chain
 ```
 
-**Timers (cron replacement)**
+Timers (cron replacement)
 ```ini
 # backup.timer
 [Timer]
@@ -256,9 +257,9 @@ WantedBy=timers.target
 ```
 Paired with `backup.service`.
 
-**Socket activation**: systemd listens on a port/socket and starts the service on first connection, passing the file descriptor. Enables on-demand start and zero-downtime restarts.
+Socket activation: systemd listens on a port/socket and starts the service on first connection, passing the file descriptor. Enables on-demand start and zero-downtime restarts.
 
-**Windows to Linux mapping**
+Windows to Linux mapping
 
 | Windows | Linux (systemd) |
 |---|---|
@@ -276,16 +277,14 @@ Paired with `backup.service`.
 | Scheduled Tasks | `.timer` units / cron |
 | Session 0 isolation | Services have no session/TTY by default |
 
-**Security notes**
+Security notes
 - Writable unit files or writable `ExecStart` binaries owned by non-root are a privilege-escalation vector (analogous to weak service permissions on Windows).
 - Services running as root without sandboxing are high-value targets; prefer unprivileged users plus hardening directives.
 
 ---
 
-## communication
-### How would you choose how components communicate?
-> We used three mechanisms, chosen by the nature of the data: REST API for stateless request/response: configuration push, queries, dashboard data. Simple, cacheable, easy to retry. Sockets for low-latency, high-frequency signals: heartbeats and status. If one is lost, the next one replaces it, so occasional loss is acceptable. Message queue for critical data like alerts and asset events. Messages are persisted and acknowledged, so if the network drops between tiers, nothing is lost and the queue redelivers after reconnect. Because redelivery can cause duplicates, consumers dedupe with message IDs (idempotent processing).
----
+### WixToolset
+
 
 ## Languages
 ### Your strongest language is C#. How comfortable are you with Rust or Go?
@@ -323,24 +322,27 @@ I haven’t directly implemented an identity-provider integration such as Okta o
 Mục này họ thường **không kỳ vọng bạn là security engineer chuyên cryptography**. Với role endpoint/agent, họ muốn biết bạn có tư duy đúng về việc **agent lưu dữ liệu local và giữ secret an toàn**.
 
 Cụ thể họ thường expect bạn hiểu 4 phần:
-Local data storage
+
+`Local data storage`
 - Agent của bạn lưu dữ liệu local ở đâu? Sqlite Datbase + cypher encripted + DPAPI (windows encrypted cyperkey) + systemd-creds (Linux).
 - Nếu network/backend unavailable thì bạn xử lý buffered data thế nào?
 - Làm sao tránh corruption khi service crash/restart?
 - Files permissions ACLs for Windows and chmod chown for Linux (600, 750, 755)
 
-Secure credential storage
+`Secure credential storage`
 - Bạn sẽ lưu API token/password/client secret của agent ở đâu? Sqlite Datbase + cypher encripted + DPAPI (windows encrypted cyperkey) + systemd-creds (Linux).
 - Trên Windows bạn biết cơ chế nào để bảo vệ credential? Expected: Windows DPAPI, ACL.
 - Linux thì sao? Expected: restrictive file permissions (chmod, chown), secret stores/keyrings nếu phù hợp.
 - Nếu attacker copy được config file sang máy khác thì họ có sử dụng secret đó được không?
 
-Encryption at rest / in transit
-Encryption in transit protects data while it is travelling between systems, usually using TLS, such as HTTPS between an agent and backend.  
-Encryption at rest protects stored data, for example a local database, cached sensitive information, or credentials stored on disk.  
+`Encryption at rest / in transit`
+- Encryption in transit protects data while it is travelling between systems, usually using TLS, such as HTTPS between an agent and backend.  
+- Encryption at rest protects stored data, for example a local database, cached sensitive information, or credentials stored on disk.  
 They solve different problems, so normally sensitive systems need both.
+### How would you choose how components communicate?
+> We used three mechanisms, chosen by the nature of the data: REST API for stateless request/response: configuration push, queries, dashboard data. Simple, cacheable, easy to retry. Sockets for low-latency, high-frequency signals: heartbeats and status. If one is lost, the next one replaces it, so occasional loss is acceptable. Message queue for critical data like alerts and asset events. Messages are persisted and acknowledged, so if the network drops between tiers, nothing is lost and the queue redelivers after reconnect. Because redelivery can cause duplicates, consumers dedupe with message IDs (idempotent processing).
 
-Secrets management
+`Secrets management`
 - Azure Key Vault, Vault, Dev just consume through API, this handle by Devops 
 
 ## Scenarios
@@ -350,6 +352,17 @@ Secrets management
 ### How would you keep an agent reliable over a long time?
 > I would avoid busy loops, limit concurrent work and queue sizes, and release resources when they are no longer needed. I would add useful logs and monitor memory, CPU, and recent successful activity. Expected failures, such as a temporary network problem, should be handled. The service manager can restart a crashed process, but a process that is alive and stuck needs a separate health check.
 
+### What should happen when the backend is unavailable?
+> I would use timeouts and retry temporary failures with increasing delays, up to a maximum delay. Some randomness in the delay helps devices avoid reconnecting together. If data must survive an outage, I would use a bounded local buffer and define what happens when it fills. After reconnecting, I would send pending work carefully. Authentication or invalid-request errors need investigation rather than repeated retries.
+
+**Remember:** Timeout → backoff → bounded buffer → reconnect.
+
+### How would you make automatic updates safer?
+
+> I would verify that the update comes from a trusted publisher and is intended for this platform and version before running it. I would preserve configuration, stop the service cleanly when required, install the update, and check that the service works afterward. I would also plan recovery if the update fails. I would not assume every installer automatically rolls everything back, especially if stored data has changed.
+
+**Remember:** Verify → preserve → install → health check → recover.
+
 ### Describe a difficult production bug. How did you find the root cause and verify the fix?
 > We had a production issue where the connection between our components kept dropping, and it was hard to reproduce. Some devices would just stop sending data.
 Our socket was supposed to exist only once in the whole app, but the dependency injection setup was quietly creating a second copy without any error. One copy kept the live connection, and the other was the one some parts of the code were actually using. When the wrong one lost its connection, everything depending on it went silent.
@@ -358,10 +371,7 @@ I fixed the registration so only one instance exists, then checked it by running
 To prevent it from happening again, I added a test that checks the socket is created only once / added a startup check / documented how to register shared services.
 
 <!--
-### 2. What is different about a Windows service or Linux daemon?
-
-> It runs in the background and can run without an interactive user logging in. On Windows, the Service Control Manager manages the service. On Debian, systemd can manage it. It still runs under an account with defined permissions. I would configure startup and recovery, and make sure the application handles shutdown properly. Running in the background does not mean it has unrestricted access.
-
+### What is different about a Windows service or Linux daemon?
 **Remember:** Background process → service manager → account and permissions.
 
 ### 3. What permissions should the service use?
@@ -378,11 +388,7 @@ To prevent it from happening again, I added a test that checks the socket is cre
 
 **Remember:** Bounded work → resource cleanup → health checks → recovery.
 
-### 6. What should happen when the backend is unavailable?
 
-> I would use timeouts and retry temporary failures with increasing delays, up to a maximum delay. Some randomness in the delay helps devices avoid reconnecting together. If data must survive an outage, I would use a bounded local buffer and define what happens when it fills. After reconnecting, I would send pending work carefully. Authentication or invalid-request errors need investigation rather than repeated retries.
-
-**Remember:** Timeout → backoff → bounded buffer → reconnect.
 
 ### 7. How would you prevent the same command from being applied twice?
 
@@ -437,11 +443,7 @@ To prevent it from happening again, I added a test that checks the socket is cre
 
 **If asked for an unfamiliar OS API:** Say you would check the supported mechanism for that service environment rather than guess a function name.
 
-### 5. How would you make automatic updates safer?
 
-> I would verify that the update comes from a trusted publisher and is intended for this platform and version before running it. I would preserve configuration, stop the service cleanly when required, install the update, and check that the service works afterward. I would also plan recovery if the update fails. I would not assume every installer automatically rolls everything back, especially if stored data has changed.
-
-**Remember:** Verify → preserve → install → health check → recover.
 
 **Experience boundary:** Explain your actual MSI/WiX or DEB packaging work when asked. Discuss code signing, rollout control, or automatic rollback as proposed steps unless you personally implemented them.
 
@@ -466,18 +468,6 @@ To prevent it from happening again, I added a test that checks the socket is cre
 > I would clarify the product's security requirements first. Continuing access may preserve availability, while denying it may reduce the risk of unauthorized access. A product might permit some operations using a valid cached policy and block others. I would define which actions are allowed offline, how long the policy remains valid, and what happens when it expires, with the security team.
 
 **Remember:** Agree offline rules before an outage; there is no universal default for every action.
-
-### 10. What would you do if you did not know a security or platform detail?
-
-> I would explain the part I understand and be clear about the part I have not implemented. Then I would check the existing code and official documentation, build a small test, and ask for review where the change affects security or OS behavior. I would rather verify the behavior than make an assumption that could affect a customer's device.
-
-**Speaking pattern:** “My understanding is … The part I would need to verify is …”
-
-### Technical references for these added sections
-
-- [Microsoft: Retry pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/retry) — transient failures, retry delays, and idempotency.
-- [Microsoft: Service accounts](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-service-accounts) — service identities and account selection.
-
 ----->
 
 ## 60+ minutes
