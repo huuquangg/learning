@@ -1,40 +1,53 @@
+# 0–5 minutes: Introduction
+## Tell us about yourself and your relevant experience? (100%)
+> I’m Quang, *a software engineer with two and a half years of experience* building distributed systems. Previously, *At OPSWAT*, I worked on an ids which is make of 3 components: Enterprise, Site, and Sensor. On the Sensor, agents running on Windows and Linux that captured network traffic and sent it to Site. At Site, the data was modeling for asset, connection, and policy, and vulnerability. Enterprise provided centralized management across multiple Sites. I’m now at *AvePoint*, working on backup and migration data platform for Microsoft partner with Azure cloud ecosystem. I’m interested in this role (SWE Desktop/Native) because it *algined with my experience* with background agents, distributed communication agents, networking, and security platform.
+---
 # Required Qualifications
-- Proficiency in at least one relevant systems/native language, such as Rust, Go, or a comparable language [Languages](#languages)
-- ~~Experience with JavaScript or Python (Typescript) (Preferred)~~
-- ~~Experience with Rust or Go for systems-level or security-focused development (Preferred)~~
-- Solid understanding of networking fundamentals: TCP/IP, DNS, routing, firewalls, VPN protocols, and/or ZTNA concepts. [Networking Foundations](#networking-foundations)
-- Experience building agents/clients for RMM (remote monitoring and management), EDR/XDR, MDM, VPN, or ZTNA products (Preferred)
+[Languages](#languages)
+- Proficiency in at least one relevant systems/native language, such as Rust, Go, or a comparable language
+- ~~(Preferred) Experience with JavaScript or Python (Typescript)~~
+- ~~(Preferred) Experience with Rust or Go for systems-level or security-focused development~~
+---
+[Networking Foundations](#networking-foundations)
+- Solid understanding of networking fundamentals: TCP/IP, DNS, routing, firewalls, VPN protocols, and/or ZTNA concepts.
+- ~~(Preferred) Experience building agents/clients for RMM (remote monitoring and management), EDR/XDR, MDM, VPN, or ZTNA products.~~
+---
+[OS Services](#networking-foundations)
 - Hands-on experience building, shipping, and maintaining background services, daemons, system agents, or other privileged/low-footprint desktop software.
-- Experience with installers, silent deployment, code signing, auto-update systems, and large-scale software distribution (Preferred)
-- Experience developing agents for multiple desktop/server operating systems, including Windows, macOS, and Linux (Preferred)
+- (Preferred) Experience with installers, silent deployment, code signing, auto-update systems, and large-scale software distribution 
+- (Preferred) Experience developing agents for multiple desktop/server operating systems, including Windows, macOS, and Linux 
 - Experience with OS-level programming concepts: services/daemons, permissions models, local user/group management, process management, and system APIs on Windows, macOS, and/or Linux.
-- Working knowledge of identity and access management concepts: authentication (SSO, SAML, OIDC), authorization models (RBAC/ABAC), and directory services.
-- Experience designing and consuming REST APIs and integrating third-party systems, including identity providers and SaaS platforms. [integration](#3rd-party-integration)
-- Direct experience integrating with identity providers (Entra ID/Azure AD, Okta, Ping, Google Workspace) or SaaS admin/security APIs (e.g., Google Workspace, Microsoft Graph, Slack, Salesforce) (Preferred)
-- Familiarity with local data storage, secure credential storage, encryption at rest/in transit, and secrets management. [credentials](#credentials)
-- Familiarity with cloud platforms such as Azure or AWS, and real-time communication protocols (WebSockets, gRPC, MQTT)
-- Ability to independently troubleshoot agent, network, identity-integration, and platform-specific issues [scenarios](#scenarios)
+---
+[3rd party intergration](#3rd-party-integration)
+- Experience designing and consuming REST APIs and integrating third-party systems, including identity providers and SaaS platforms. 
+- Working knowledge of identity and access management concepts: authentication (SSO, SAML, OIDC), authorization models (RBAC/ABAC), and directory services. 
+- ~~(Preferred) Direct experience integrating with identity providers (Entra ID/Azure AD, Okta, Ping, Google Workspace) or SaaS admin/security APIs (e.g., Google Workspace, Microsoft Graph, Slack, Salesforce)~~
+---
+[credentials](#credentials)
+- Familiarity with local data storage, secure credential storage, encryption at rest/in transit, and secrets management. 
+---
+[communication](#communication)
+- Familiarity with cloud platforms such as Azure or AWS, and real-time communication protocols (WebSockets, gRPC, MQTT) 
+---
+[scenarios](#scenarios)
+- Ability to independently troubleshoot agent, network, identity-integration, and platform-specific issues
+---
 - ~~Strong professional English communication skills, both written and verbal. (practice)~~
 - ~~3+ years of professional software engineering experience for mid-level candidates, or 5+ years for senior-level candidates.~~
 - ~~Experience with Git, code review, automated testing, build tooling, and software release practices.~~
 - ~~Excellent analytical, organizational, prioritization, documentation, and collaboration skills~~
 - Experience with Docker, CI/CD pipelines, infrastructure-as-code, or deployment automation
-- Knowledge of secure software development, threat modeling, encryption, secrets management, and data privacy/compliance practices (e.g., SOC 2, ISO 27001). (Preferred)
-- Experience with policy engines, rules evaluation systems, or attribute-based access control implementations (Preferred)
-- ~~Experience working in a security product, consulting, or distributed-team environment~~ (Preferred)
-- ~~Prior experience mentoring developers or leading small technical initiatives~~ (Preferred)
-
-
-## 0–5 minutes: Introduction
-### Tell us about yourself and your relevant experience? (100%)
-> I’m Quang, *a software engineer with two and a half years of experience* building distributed systems. Previously, *At OPSWAT*, I worked on an ids which is make of 3 components: Enterprise, Site, and Sensor. On the Sensor, agents running on Windows and Linux that captured network traffic and sent it to Site. At Site, the data was modeling for asset, connection, and policy, and vulnerability. Enterprise provided centralized management across multiple Sites. I’m now at *AvePoint*, working on backup and migration data platform for Microsoft partner with Azure cloud ecosystem. I’m interested in this role (SWE Desktop/Native) because it *algined with my experience* with background agents, distributed communication agents, networking, and security platform.
----
+- ~~(Preferred) Knowledge of secure software development, threat modeling, encryption, secrets management, and data privacy/compliance practices (e.g., SOC 2, ISO 27001).~~ 
+- ~~(Preferred) Experience with policy engines, rules evaluation systems, or attribute-based access control implementations~~
+- ~~(Preferred) Experience working in a security product, consulting, or distributed-team environment~~ 
+- ~~(Preferred) Prior experience mentoring developers or leading small technical initiatives~~ 
 
 ## 5–10 minutes: Your experience and project ownership.
 ### Walk us through the product you worked on at OPSWAT. What did you personally own?
 > The product its an intrusion detection system for OT industrial. It had three tiers: Sensor, Site, and Enterprise. Data flowed upward from Sensor to Enterprise. **(Sensor)** is the data collection layer, At this layer I developed full lifecyle agents that capture packets and recognize Siemens, Schneider devices and its communication on network segments, packaged the installers for both Win/Lin platforms. **(Site)** is the processing and management layer. It receives normalized data from Sensors and builds the core model. I worked on features manage devices and proflies of them. I also built connection visualization, showing relationships between assets as a graph. I also worked on policy management and enforcement: when a policy was violated, Site could trigger a alert and integrated 3rd-party NAC, firewalls, or Aruba ClearPass to make an action, enrichment data integrate with ServiceNow or Cisco Miraki. **(Enterprise)** sits on top and provides centralized management across Sites: visibility, and configuration. I built parts of the dashboard for the cross-Site view. I worked on centralized configuration management, so settings could be pushed to multiple Sites from one place."
 => Possible asking how components comunication
-## 15–30 minutes: Services, OS fundamentals, and backend communication
+
+## 15–30 minutes:
 ### Tell us about a Windows service or Linux/Daemons background service you developed.
 
 Windows services are background processes that run independently of user login, managed by the Service Control Manager (SCM).
@@ -267,125 +280,65 @@ Paired with `backup.service`.
 **Security notes**
 - Writable unit files or writable `ExecStart` binaries owned by non-root are a privilege-escalation vector (analogous to weak service permissions on Windows).
 - Services running as root without sandboxing are high-value targets; prefer unprivileged users plus hardening directives.
+
 ---
-<!--
+## communication
 ### How would you choose how components communicate?
-> "We used three mechanisms, chosen by the nature of the data: REST API for stateless request/response: configuration push, queries, dashboard data. Simple, cacheable, easy to retry. Sockets for low-latency, high-frequency signals: heartbeats and status. If one is lost, the next one replaces it, so occasional loss is acceptable. Message queue for critical data like alerts and asset events. Messages are persisted and acknowledged, so if the network drops between tiers, nothing is lost and the queue redelivers after reconnect. Because redelivery can cause duplicates, consumers dedupe with message IDs (idempotent processing).-->
+> "We used three mechanisms, chosen by the nature of the data: REST API for stateless request/response: configuration push, queries, dashboard data. Simple, cacheable, easy to retry. Sockets for low-latency, high-frequency signals: heartbeats and status. If one is lost, the next one replaces it, so occasional loss is acceptable. Message queue for critical data like alerts and asset events. Messages are persisted and acknowledged, so if the network drops between tiers, nothing is lost and the queue redelivers after reconnect. Because redelivery can cause duplicates, consumers dedupe with message IDs (idempotent processing).
 
 ## Languages
 ### Your strongest language is C#. How comfortable are you with Rust or Go?
 C# is my strongest language, but I don't see switching languages as a big obstacle. The core concepts carry over: types, concurrency, memory, error handling, and API design. What changes is the idioms, like goroutines in Go or ownership in Rust. I also use AI to explain unfamiliar idioms and translate C# patterns into idiomatic Go or Rust, and I always check its output against the docs and code review so I'm actually working with the language.
 
-# Networking Foundations
+## Networking Foundations
 | Topic | Interview-ready understanding |
 |---|---|
-| **TCP vs UDP** | Both are **transport-layer protocols**. **TCP** provides a reliable, ordered byte stream: it establishes a connection, tracks sequence numbers, acknowledges data, and retransmits lost data. **UDP** sends independent datagrams with no built-in guarantee of delivery, ordering, or retransmission, trading reliability features for lower overhead and latency. |
-| **DNS** | DNS translates human-friendly domain names such as `google.com` into information computers can use, most commonly IP addresses such as `142.x.x.x`. Think of it as the Internet's distributed naming system. |
-| **Routing** | Routing is **not the `/api/users` part of a URL** at the networking level. Network routing decides **which path packets take between networks**, based primarily on destination IP addresses and routing tables. URL routing like `/api/users` happens later at the application/server level. |
+| **TCP vs UDP** | Both are **transport-layer protocols**. **TCP** provides a reliable, ordered datagrams: it establishes a connection, tracks sequence numbers, acknowledges data, and retransmits lost data. **UDP** sends independent datagrams with no guarantee of delivery, tracks ordering, or retransmission, trading reliability for lower overhead and latency. |
+| **DNS** | DNS translates human-friendly domain names such as `google.com` into information computers can use, most commonly IP addresses such as `142.x.x.x`. |
+| **Routing** | Network routing decides **which path packets take between networks**, based primarily on destination IP addresses and routing tables. |
 | **Ports** | An IP identifies a **machine/network interface**, while a port identifies a particular network service/process endpoint on that machine. For example `192.168.1.10:443`: IP → machine, port `443` → service listening there. |
 | **Sockets** | A socket is the **programming abstraction/API** applications use to communicate over the network. You can create a TCP socket or UDP socket. A network connection is commonly identified by protocol + source IP/port + destination IP/port. |
 | **HTTP** | HTTP is an **application-layer request/response protocol**. HTTP/1.1 and HTTP/2 normally run over TCP. HTTP itself is stateless: each request contains the information needed to process it, although applications can maintain state using cookies, tokens, sessions, databases, etc. HTTP/3 is different: it runs over QUIC, which uses UDP. |
 | **WebSocket** | WebSocket gives the client and server a **persistent, full-duplex connection**, allowing either side to send messages at any time. Important correction: traditional WebSocket normally runs over **TCP, not UDP**. It usually begins with an HTTP handshake and then upgrades the connection to WebSocket. |
 | **Firewall** | A firewall enforces rules controlling network traffic. Rules can consider things like source/destination IP, ports, protocol, connection state, application, interface, etc., and decide whether traffic is allowed or blocked. |
-| **VPN** | A VPN is **not simply a proxy**. It creates an encrypted tunnel between your device and another network/VPN gateway. It can route some or all network traffic through that tunnel, making your device logically connected to the remote/private network. |
+| **VPN** | It creates an encrypted tunnel between your device and another network/VPN gateway. It can route some or all network traffic through that tunnel, making your device logically connected to the remote/private network. |
 | **ZTNA** | Zero Trust Network Access provides access based on **identity, device posture, policy, and context**, rather than trusting someone merely because they are connected to the corporate network. Typically, it grants access to specific applications/resources instead of giving broad network access like a traditional VPN. |
 
 ### VPN vs ZTNA
 
-This difference is particularly likely to matter for the endpoint-agent role you're preparing for.
-
-```text
-Traditional VPN
-
-Laptop
-   │
-   │ encrypted tunnel
-   ▼
-Corporate Network
-   ├── Server A
-   ├── Server B
-   ├── Database
-   └── Internal apps
-```
-
-Once connected, VPNs traditionally give the device **network-level connectivity**, though firewall rules and segmentation can restrict it.
-
-ZTNA approaches the problem differently:
-
-```text
-User + Device
-      │
-      ├── Who are you?
-      ├── Is this device trusted/compliant?
-      ├── Are you allowed to access App A?
-      │
-      ▼
-   ZTNA Policy
-      │
-      ▼
-    App A
-
-Not necessarily:
-      │
-      └──────────► entire corporate network
-```
-
 So a strong interview answer would be:
 > **"A traditional VPN establishes an encrypted tunnel and usually gives the device network-level access to a private network. ZTNA follows zero-trust principles: it continuously evaluates identity, device posture, and policy, and grants access to specific resources rather than implicitly trusting a device because it's inside the network."**
-
-For your interview, I'd memorize the networking stack in roughly this order:
-**DNS → IP → routing → TCP/UDP → ports/sockets → TLS → HTTP/WebSocket → application**
-Then separately understand **firewall → VPN → ZTNA**, because those are about **controlling and securing that communication**.
-
 
 ## 3rd party integration
 I have solid experience designing and consuming REST APIs, and I’ve integrated with several third-party systems.
 
-In my previous work, I integrated with platforms and SDKs such as ServiceNow, Cisco Meraki, Siemens, Schneider Electric, and Rockwell Automation. Depending on the integration, I worked with REST APIs or vendor SDKs, handled authentication, mapped external data into our internal models, processed errors and timeouts, and made sure the integration could recover when the external system was temporarily unavailable.
+In my previous work, I integrated with platforms and SDKs such as ServiceNow, Cisco Meraki, Aruba ClearPass, Siemens, Schneider Electric, and Rockwell Automation. Depending on the integration, I worked with REST APIs or vendor SDKs, handled authentication, mapped external data into our internal models, processed errors and timeouts, and made sure the integration could recover when the external system was temporarily unavailable.
 
-I haven’t directly implemented an identity-provider integration such as Okta or Entra ID yet. However, I’m familiar with the core concepts such as OAuth 2.0, OIDC, JWTs, claims, roles, and token validation, so I’m confident I could pick up that part quickly from an existing implementation and documentation.
+I haven’t directly implemented an identity-provider integration such as Okta or Entra ID yet. However, I’m familiar with the anothers third party integration so I’m confident I could pick up that part quickly.
 
 ## Credentials
 Mục này họ thường **không kỳ vọng bạn là security engineer chuyên cryptography**. Với role endpoint/agent, họ muốn biết bạn có tư duy đúng về việc **agent lưu dữ liệu local và giữ secret an toàn**.
 
 Cụ thể họ thường expect bạn hiểu 4 phần:
+Local data storage
+- Agent của bạn lưu dữ liệu local ở đâu? Sqlite Datbase + cypher encripted + DPAPI (windows encrypted cyperkey) + systemd-creds (Linux).
+- Nếu network/backend unavailable thì bạn xử lý buffered data thế nào?
+- Làm sao tránh corruption khi service crash/restart?
+- Files permissions ACLs for Windows and chmod chown for Linux (600, 750, 755)
 
-- **Local data storage**: agent lưu config, cache, state, logs, queue ở đâu; ví dụ SQLite hoặc file local. Biết dữ liệu nào là bình thường và dữ liệu nào là sensitive.
-- **Secure credential storage**: không hard-code password/API key/token trong source hoặc plain-text config. Trên Windows có thể dùng DPAPI/Credential Manager; Linux có permission-restricted files hoặc keyring/secret service.
-- **Encryption at rest / in transit**: at rest là dữ liệu nằm trên disk; in transit là dữ liệu đang truyền qua network. In transit thường dùng HTTPS/TLS và certificate validation.
-- **Secrets management**: production secret nên lấy từ environment/secret store như Azure Key Vault, thay vì commit vào repo; access theo least privilege và có rotation.
+Secure credential storage
+- Bạn sẽ lưu API token/password/client secret của agent ở đâu? Sqlite Datbase + cypher encripted + DPAPI (windows encrypted cyperkey) + systemd-creds (Linux).
+- Trên Windows bạn biết cơ chế nào để bảo vệ credential? Expected: Windows DPAPI, ACL.
+- Linux thì sao? Expected: restrictive file permissions (chmod, chown), secret stores/keyrings nếu phù hợp.
+- Nếu attacker copy được config file sang máy khác thì họ có sử dụng secret đó được không?
 
-Một câu trả lời interview phù hợp với level của bạn:
+Encryption at rest / in transit
+Encryption in transit protects data while it is travelling between systems, usually using TLS, such as HTTPS between an agent and backend.  
+Encryption at rest protects stored data, for example a local database, cached sensitive information, or credentials stored on disk.  
+They solve different problems, so normally sensitive systems need both.
 
-I’m familiar with the main security principles around local storage and secret management.
-
-For local data, I’ve worked with configuration files, local databases, caches, and logs, and I understand that sensitive data should be handled differently from normal application state.
-
-For credentials and tokens, I would avoid storing them in plain text or hard-coding them in source code. On Windows, I would prefer OS-provided mechanisms such as DPAPI or Credential Manager, and on Linux I would use restricted file permissions or an appropriate secret store.
-
-For data in transit, I’ve worked with HTTPS and TLS-based communication between services, including certificate validation.
-
-For backend secrets, I’m familiar with using environment variables or a managed secret store such as Azure Key Vault, with access limited based on least privilege.
-
-I haven’t implemented every OS-specific credential-storage mechanism directly, but I understand the security model and how I would approach it.
-
-Nếu họ đào sâu, các câu rất dễ gặp là:
-
-1. “Where would you store an access token on a Windows endpoint?”
-2. “Why is storing secrets in appsettings.json risky?”
-3. “What is the difference between encryption at rest and in transit?”
-4. “How would you protect a local SQLite database?”
-5. “What is DPAPI?”
-6. “How would you protect secrets on Linux?”
-7. “How do you rotate a secret?”
-8. “Why is TLS certificate validation important?”
-
-Với JD này, bạn chỉ cần nắm chắc **DPAPI, file permissions, TLS/HTTPS, secret stores, environment variables, least privilege và secret rotation** là đủ foundation tốt cho mức 2.5 năm kinh nghiệm.
-
-### How would you authenticate the agent and protect its credentials?
-> I would use the team's approved device enrollment and authentication approach. Each device should have its own identity so its access can be revoked separately. Communication should use TLS with certificate validation. I would use an OS-supported secret store appropriate for the service account, restrict access, and keep credentials out of logs. I would confirm how rotation and revocation work before implementing this.
-
-**Remember:** Device identity → protected connection → protected credentials → revoke access.
+Secrets management
+- Azure Key Vault, Vault, Dev just consume through API, this handle by Devops 
 
 ## Scenarios
 ### How would you investigate high CPU or memory usage on a customer’s device?
