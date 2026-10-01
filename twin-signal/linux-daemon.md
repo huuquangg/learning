@@ -1,22 +1,12 @@
-
 ### Linux
 
 Runtime / boot sequence
 
 1. Bootloader (for example GRUB) loads the Linux kernel.
 2. Kernel loads CPU, memory, devices/drivers, filesystem.
-3. starts `systemd` as PID 1.
-4. `systemd` reads [unit files](#systemd-unit-files) from locations such as `/usr/lib/systemd/system/` and `/etc/systemd/system/`, resolves dependencies, and builds the boot transaction/dependency graph.
-
-5. `systemd` starts units required by the boot targets, generally progressing through:
-
-- `sysinit.target` — early system initialization
-- `basic.target` — basic userspace services
-- `multi-user.target` — normal non-GUI multi-user system
-- `graphical.target` — desktop/GUI systems, when applicable
-
-5. Enabled services are pulled into the boot transaction through relationships such as `WantedBy=multi-user.target` created by `systemctl enable`. Services are started according to dependency and ordering rules such as [`Wants=` / `Requires=`](#dependencies-systemd) and [`After=` / `Before=`](#ordering-systemd).
-6. Services that are installed but not enabled wait until something requests them, for example another unit, socket/timer activation, D-Bus activation, or a user/admin running [`systemctl start`](#manage-tool-systemd).
+3. starts [`systemd`](#systemd) as PID 1.
+4. `systemd` reads [unit files](#unit-file), builds the [dependency](#dependencies-and-ordering-separate-concepts) graph, and starts units required by the boot targets.
+5. Services that are installed but not enabled wait until something requests them, for example another unit, socket/timer activation, D-Bus activation, or a user/admin running [`systemctl start`](#manage-tool-systemd).
 
 - `systemd` creates/configures the service's cgroup
 - applies [`User=` / `Group=`](#service-account-systemd), capabilities, namespaces, resource limits, environment, and filesystem restrictions
@@ -40,13 +30,7 @@ Daemon fundamentals
 - Classic (SysV-style) daemonization: fork, `setsid()` to detach from the terminal, fork again (so it can't reacquire a TTY), `chdir("/")`, reset `umask`, close/redirect stdin/stdout/stderr to `/dev/null`, write a PID file.
 - Modern approach: don't daemonize yourself. Run in the foreground and let systemd supervise (`Type=simple`), logging to stdout/stderr (captured by journald).
 
-Init history
-
-- SysV init: shell scripts in `/etc/init.d/`, runlevels 0-6, symlinks in `/etc/rc*.d/`, sequential startup.
-- Upstart: event-driven (Ubuntu, briefly).
-- systemd: parallel startup, dependency-based, socket/bus/timer activation, cgroup tracking. PID 1.
-
-systemd core concepts
+### systemd
 
 - Units are the objects systemd manages. Types:
   - `.service` — a daemon/process
@@ -56,6 +40,8 @@ systemd core concepts
   - `.mount`, `.automount`, `.device`, `.path`, `.slice`, `.scope`, `.swap`
 - Targets: `multi-user.target` (~runlevel 3), `graphical.target` (~5), `rescue.target`, `default.target` (symlink to the boot target).
 - cgroups: each service runs in its own cgroup, so systemd can track all child processes and kill them reliably on stop.
+
+### unit file
 
 Unit file locations (precedence high to low)
 
@@ -67,8 +53,6 @@ Unit file locations (precedence high to low)
 ```
 
 Use drop-ins (`systemctl edit foo.service` → `/etc/systemd/system/foo.service.d/override.conf`) rather than editing packaged files.
-
-Example service unit
 
 ```ini
 [Unit]
@@ -97,7 +81,9 @@ Key `[Service]` options
 - TimeoutStartSec / TimeoutStopSec
 - User / Group / DynamicUser
 
-Dependencies and ordering (separate concepts):
+### Dependencies and ordering (separate concepts):
+
+Enabled services are pulled into the boot transaction through relationships such as `WantedBy=multi-user.target` created by `systemctl enable`. Services are started according to dependency and ordering rules such as [`Wants=` / `Requires=`](#dependencies-systemd) and [`After=` / `Before=`](#ordering-systemd).
 
 - `Requires=`, `Wants=`, `BindsTo=`, `Conflicts=` — _what_ gets pulled in
 - `After=`, `Before=` — _order_ only
@@ -117,7 +103,7 @@ MemoryMax=512M
 
 Check the score with `systemd-analyze security myapp.service`.
 
-Management commands
+### Management commands
 
 ```
 systemctl start|stop|restart|reload|status <unit>
@@ -130,28 +116,21 @@ systemctl list-unit-files
 systemctl cat|show|edit <unit>
 systemctl --user ...                 # per-user manager
 systemctl get-default / set-default multi-user.target
-```
 
-Logging: journald
+=== Logging: journald ===
 
-```
 journalctl -u myapp.service -f       # follow
 journalctl -b                        # this boot
 journalctl -p err --since "1 hour ago"
 journalctl -xe                       # recent errors with explanations
-```
 
-Boot analysis
-
-```
+=== Boot analysis ===
 systemd-analyze                      # total boot time
 systemd-analyze blame                # slowest units
 systemd-analyze critical-chain
-```
 
-Timers (cron replacement)
+=== Timers (cron replacement) ===
 
-```ini
 # backup.timer
 [Timer]
 OnCalendar=daily
@@ -159,7 +138,3 @@ Persistent=true
 [Install]
 WantedBy=timers.target
 ```
-
-Paired with `backup.service`.
-
-Socket activation: systemd listens on a port/socket and starts the service on first connection, passing the file descriptor. Enables on-demand start and zero-downtime restarts.

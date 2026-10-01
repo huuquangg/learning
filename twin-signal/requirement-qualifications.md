@@ -1,6 +1,6 @@
 # Required Qualifications
 
-[Languages](./interview-progress.md.md#languages)
+[Languages](./interview-progress.md#languages)
 
 - Proficiency in at least one relevant systems/native language, such as Rust, Go, or a comparable language
 - ~~(Preferred) Experience with JavaScript or Python (Typescript)~~
@@ -18,9 +18,9 @@
 [OS Services](./interview-progress.md#os-services)
 
 - Hands-on experience building, [shipping](./packaging.md), and maintaining background services, daemons, system agents, or other privileged/low-footprint desktop software.
+- Experience with OS-level programming concepts: services/daemons, permissions models, local user/group management, process management, and system APIs on Windows, macOS, and/or Linux.
 - (Preferred) Experience with installers, silent deployment, code signing, auto-update systems, and large-scale software distribution
 - (Preferred) Experience developing agents for multiple desktop/server operating systems, including [Windows](./windows-service.md#service-control-manager-scm), macOS, and [Linux](./linux-daemon.md)
-- Experience with OS-level programming concepts: services/daemons, permissions models, local user/group management, process management, and system APIs on Windows, macOS, and/or Linux.
 
 ---
 

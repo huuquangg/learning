@@ -9,10 +9,8 @@ Runtime / boot sequence
    - Auto-start services in dependency order
    - Delayed-auto-start services shortly after (via a separate timer, off the critical boot path)
 5. Manual-start services wait for something to request (or another service, an app, or a user via [`services.msc`/`sc start`](#manage-tool-scm)).
-
-- create service [process SIDs](#service-sids-scm) by [ImagePath](#file-permissions-scm)
-- excute main()/Program
-
+   - create service [process SIDs](#service-sids-scm) by [ImagePath](#file-permissions-scm)
+   - excute main()/Program
 6. Each service process calls `StartServiceCtrlDispatcher()` early in `main()`, registering a `ServiceMain` entry point per service name — this is how one .exe can host multiple services (like `svchost.exe`).
 7. `ServiceMain` calls `RegisterServiceCtrlHandlerEx()` to receive [control codes](#lifecycle-scm) (stop, pause, shutdown, custom), then reports `SERVICE_RUNNING`.
 8. SCM polls/expects periodic status updates during pending states (`dwWaitHint`, `dwCheckPoint`) — if a service doesn't respond in time, SCM considers it hung.
@@ -22,24 +20,26 @@ Runtime / boot sequence
 All services (and drivers) are registered under: HKLM\SYSTEM\CurrentControlSet\Services\<ServiceName>
 Key values under each service key:
 
-- ImagePath — path to the executable (or driver .sys file)
-- Start — startup type:
+```init
+ImagePath — path to the executable (or driver .sys file)
+Start — startup type:
   - `0` = Boot (driver, loaded by kernel loader)
   - `1` = System (driver, loaded by I/O subsystem)
   - `2` = Automatic
   - `3` = Manual
   - `4` = Disabled
-- Type — what kind of service:
+Type — what kind of service:
   - `1` = Kernel driver
   - `2` = File system driver
   - `0x10` = Own process (`SERVICE_WIN32_OWN_PROCESS`)
   - `0x20` = Shared process (`SERVICE_WIN32_SHARE_PROCESS`, i.e. svchost-hosted)
   - `0x110`/`0x120` = interactive variants (rare, legacy)
-- ErrorControl — what happens if the service fails to start (ignore/normal/severe/critical, affects boot behavior)
-- ObjectName — account the service runs as (e.g. `LocalSystem`, `NT AUTHORITY\NetworkService`, or a domain user)
-- DependOnService / DependOnGroup — dependency list
-- DisplayName, Description
-- FailureActions (binary blob) — recovery settings (restart/run command/reboot, reset period)
+ErrorControl — what happens if the service fails to start (ignore/normal/severe/critical, affects boot behavior)
+ObjectName — account the service runs as (e.g. `LocalSystem`, `NT AUTHORITY\NetworkService`, or a domain user)
+DependOnService / DependOnGroup — dependency list
+DisplayName, Description
+FailureActions (binary blob) — recovery settings (restart/run command/reboot, reset period)
+```
 
 For svchost-hosted services, there's also a `Parameters` subkey with `ServiceDll` pointing to the DLL, since the actual code isn't in an executable at ImagePath — svchost.exe is the ImagePath, and it loads the DLL.
 
@@ -102,3 +102,7 @@ Common basic permissions:
   An important point is that folder permissions are typically inherited by child files and folders.
 
 ---
+
+```
+
+```

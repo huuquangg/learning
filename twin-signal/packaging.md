@@ -92,7 +92,9 @@ WiX project
 └── images / license.rtf
         │
         ▼
-       MSI
+┌───────────┐
+|   MSI     |
+└─────┬─────┘
 
 msiexec Agent.msi
        │
