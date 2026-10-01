@@ -64,7 +64,7 @@
 ## Tell us about yourself and your relevant experience? (100%)
 
 > I’m Quang, a software engineer 2.5 yoe, distributed systems and security-related products. 
-> Previously, at OPSWAT, I worked on an IDS with 3 components: Enterprise, Site, and Sensor. I was involved in both the Sensor agent and the Enterprise, Site backend, but most of my hands-on work was around building and maintaining the Sensor agent including its communication, lifecycle, and deployment. 
+> Previously, at OPSWAT, I worked on an IDS with 3 components: Enterprise, Site, and Sensor. I was involved in the Sensor agent and the Enterprise, Site backend, but most of my hands-on work was around building and maintaining the Sensor agent including its communication, lifecycle, and deployment. 
 > Currently, I’m at AvePoint, working mainly on a cloud platform in the Microsoft Azure ecosystem. 
 > I’m interested in this role because it’s aligned with my experience and my background, especially around system agents, networking, and OS-level behavior.
 
