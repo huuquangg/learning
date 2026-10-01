@@ -5,22 +5,23 @@ Runtime / boot sequence
 1. Bootloader loads windows kernel + boot-start drivers (`Start=0`) directly.
 2. Kernel finishes init, I/O manager loads system-start drivers (`Start=1`).
 3. `wininit.exe` starts `services.exe` (the [SCM](#service-control-manager-scm)) - User Mode.
-4. SCM reads the [registry](#registry-location), builds a dependency graph, and starts:
-   - Auto-start services in dependency order
-   - Delayed-auto-start services shortly after (via a separate timer, off the critical boot path)
-5. Manual-start services wait for something to request (or another service, an app, or a user via [`services.msc`/`sc start`](#manage-tool-scm)).
-   - create service [process SIDs](#service-sids-scm) by [ImagePath](#file-permissions-scm)
-   - excute main()/Program
-6. Each service process calls `StartServiceCtrlDispatcher()` early in `main()`, registering a `ServiceMain` entry point per service name — this is how one .exe can host multiple services (like `svchost.exe`).
-7. `ServiceMain` calls `RegisterServiceCtrlHandlerEx()` to receive [control codes](#lifecycle-scm) (stop, pause, shutdown, custom), then reports `SERVICE_RUNNING`.
-8. SCM polls/expects periodic status updates during pending states (`dwWaitHint`, `dwCheckPoint`) — if a service doesn't respond in time, SCM considers it hung.
+4. SCM reads the [registry](#registry-location),
+   - reads DependOnService builds a dependency graph,
+   - reads Start to determinate which kind of start (Manual-start services wait for something to request (or another service, an app, or a user via [`services.msc`/`sc start`]))
+   - reads [ImagePath](#file-permissions-scm) to service [process SIDs](#service-sids-scm)
+5. Execute `main() / Program`
+6. Calls `StartServiceCtrlDispatcher()` , registering a `ServiceMain` SetServiceStatus(`SERVICE_START_PENDING`).
+7. SCM polls periodic status updates during pending states (`dwWaitHint`, `dwCheckPoint`) — if a service doesn't respond in time, SCM considers it hung.
+8. `ServiceMain` calls `RegisterServiceCtrlHandlerEx()`
+   - get [control codes](#lifecycle-scm) (stop, pause, shutdown, custom),
+   - SetServiceStatus(`SERVICE_RUNNING`).
 
 #### Registry location
 
 All services (and drivers) are registered under: `HKLM\SYSTEM\CurrentControlSet\Services\<ServiceName>`
 Key values under each service key:
 
-```init
+```
 ImagePath — path to the executable (or driver .sys file)
 Start — startup type:
   - `0` = Boot (driver, loaded by kernel loader)
@@ -34,11 +35,12 @@ Type — what kind of service:
   - `0x10` = Own process (`SERVICE_WIN32_OWN_PROCESS`)
   - `0x20` = Shared process (`SERVICE_WIN32_SHARE_PROCESS`, i.e. svchost-hosted)
   - `0x110`/`0x120` = interactive variants (rare, legacy)
-ErrorControl — what happens if the service fails to start (ignore/normal/severe/critical, affects boot behavior)
-ObjectName — account the service runs as (e.g. `LocalSystem`, `NT AUTHORITY\NetworkService`, or a domain user)
+ErrorControl — if the service fails to start (ignore/normal/severe/critical, affects boot behavior)
+ObjectName — account runs as (e.g. `LocalSystem`, `NT AUTHORITY\NetworkService`, or a domain user)
 DependOnService / DependOnGroup — dependency list
-DisplayName, Description
-FailureActions (binary blob) — recovery settings (restart/run command/reboot, reset period)
+DisplayName,
+Description
+FailureActions - recovery settings (restart/run command/reboot, reset period)
 ```
 
 For svchost-hosted services, there's also a `Parameters` subkey with `ServiceDll` pointing to the DLL, since the actual code isn't in an executable at ImagePath — svchost.exe is the ImagePath, and it loads the DLL.
@@ -48,7 +50,7 @@ For svchost-hosted services, there's also a `Parameters` subkey with `ServiceDll
 Windows services are background processes that run independently of user login, managed by the Service Control Manager (SCM).
 
 - SCM (Service Control Manager) — `services.exe`, runs at boot, starts/stops/monitors all services
-- Service executable — implements `ServiceMain()` and a control handler to respond to start/stop/pause requests
+- Service executable — implements `Main()` and a control handler to respond to start/stop/pause requests
 - Startup types:
   - Automatic — starts at boot
   - Automatic (Delayed Start) — starts shortly after boot, reduces startup contention
@@ -87,7 +89,7 @@ Recovery options: each service can define actions on failure (restart service, r
 
 #### File permissions (SCM)
 
-File and folder permissions are primarily based on NTFS ACLs.
+File and folder permissions are primarily based on `NTFS ACLs`.
 SYSTEM → Full Control
 Administrators → Full Control
 SensorServiceUser → Modify
@@ -110,12 +112,17 @@ Runtime / boot sequence
 1. Bootloader (for example GRUB) loads the Linux kernel.
 2. Kernel loads CPU, memory, devices/drivers, filesystem.
 3. starts [`systemd`](#systemd) as PID 1.
-4. `systemd` reads [unit files](#unit-file), builds the [dependency](#dependencies-and-ordering-separate-concepts) graph, and starts units required by the boot targets.
-5. Services that are installed but not enabled wait until something requests them, for example another unit, socket/timer activation, D-Bus activation, or a user/admin running [`systemctl start`](#manage-tool-systemd).
-  - `systemd` creates/configures the service's cgroup
-   - applies [`User=` / `Group=`](#service-account-systemd)filesystem restrictions
-   - executes the command configured in `ExecStart=`, eventually running the application's `main()` / `Program.Main()`
-6. Monitoring and supervid through the service's cgroup. [`Restart=`](#recovery-systemd). Sends `SIGTERM` to graceful shutdown. If it does not exit within `TimeoutStopSec=`, systemd can terminate it with `SIGKILL`.
+4. `systemd` reads [unit files](#unit-file):
+   - reads Dependencies builds the [dependency](#dependencies-and-ordering) graph.
+   - Services that are installed
+   - creates/configures the service's cgroup (Something requests them, for example another unit, socket/timer activation, D-Bus activation, or a user/admin running [`systemctl start`]).
+   - reads [`User=` / `Group=`] applies filesystem restrictions
+   - reads `ExecStart=` create PID
+   - reads `Type=`
+5. Execute `main() / Program` and becomes active (running)
+6. Polling sd_notify(WATCHDOG=1) if WatchdogSec is set
+7. Monitoring and supervid through the service's cgroup.
+8. Sends `SIGTERM` to graceful shutdown. If it does not exit within `TimeoutStopSec=`, systemd can terminate it with `SIGKILL`.
 
 #### systemd
 
@@ -172,9 +179,10 @@ Key `[Service]` options
 - TimeoutStartSec / TimeoutStopSec
 - User / Group / DynamicUser
 
-#### Dependencies and ordering (separate concepts):
+#### Dependencies and ordering:
 
-Enabled services are pulled into the boot transaction through relationships such as `WantedBy=multi-user.target` created by `systemctl enable`. Services are started according to dependency and ordering rules such as [`Wants=` / `Requires=`](#dependencies-systemd) and [`After=` / `Before=`](#ordering-systemd).
+Enabled services are pulled into the boot transaction through relationships such as `WantedBy=multi-user.target` created by `systemctl enable`.
+Services are started according to dependency and ordering rules such as [`Wants=` / `Requires=`] and [`After=` / `Before=`].
 
 - `Requires=`, `Wants=`, `BindsTo=`, `Conflicts=` — _what_ gets pulled in
 - `After=`, `Before=` — _order_ only
@@ -196,58 +204,81 @@ Check the score with `systemd-analyze security myapp.service`.
 
 #### Management commands
 
-```
-systemctl start|stop|restart|reload|status <unit>
-systemctl enable|disable <unit>      # create/remove WantedBy symlinks
-systemctl enable --now <unit>
-systemctl mask|unmask <unit>         # like "Disabled" but stronger (links to /dev/null)
-systemctl daemon-reload              # after editing unit files
-systemctl list-units --type=service
-systemctl list-unit-files
-systemctl cat|show|edit <unit>
-systemctl --user ...                 # per-user manager
-systemctl get-default / set-default multi-user.target
+systemctl <action>
+journalctl <log>
+systemd-analyze <analyze>
 
-=== Logging: journald ===
+### Build
 
-journalctl -u myapp.service -f       # follow
-journalctl -b                        # this boot
-journalctl -p err --since "1 hour ago"
-journalctl -xe                       # recent errors with explanations
+#### Why did it need to be a service/daemon instead of a normal application?
 
-=== Boot analysis ===
-systemd-analyze                      # total boot time
-systemd-analyze blame                # slowest units
-systemd-analyze critical-chain
+A standard application: a user actively opens to perform a task and then closes. Examples include web browsers, photo editing software.
+A background service is a program that runs in the background, usually without a user interface. It can start automatically with the system, continue running after the user logs out, and handle tasks either continuously or on a schedule. Examples include Windows Services or Linux systemd daemons.
 
-=== Timers (cron replacement) ===
+#### How does it start on Windows and Linux? (manual)
 
-# backup.timer
-[Timer]
-OnCalendar=daily
-Persistent=true
-[Install]
-WantedBy=timers.target
-```
+#### What happens when the machine reboots? (auto)
+
+[Windows](#windows)
+[Linux](#linux)
+
+#### How does the service communicate with the backend?
+
+[Credential](./interview.md#credentials)
+
+#### How do you handle long-running work without blocking the service?
+
+I allow independent work to run concurrently, with a limit on the number of active workers so the service doesn’t accept more work than it can handle. When capacity is reached, the business requirements determine whether new work is queued or rejected with a temporary busy response. I use timeouts and cancellation when the operation is no longer needed or when the caller disconnects. I only cancel existing work to make room for a newer request if the business rules explicitly allow the newer request to replace it.
+
+### Privilege & permissions
+
+#### Which account did your service run under?
+
+#### Why did it need that permission?
+
+#### Why shouldn't everything run as LocalSystem/root?
+
+A practical downside of using accounts with limited privileges is the need to precisely assign and maintain the necessary permissions:
+
+- Insufficient access rights: The service might fail to read configuration files, write logs or data, or access required registry keys, devices, or directories; specific Access Control Lists (ACLs) must be configured.
+- Varying network access: LocalService typically accesses the network as an anonymous user, whereas NetworkService and LocalSystem use the machine's identity to access network resources. Custom local users often lack the appropriate domain identity to access network resources. (Microsoft Learn)
+- Increased complexity: Installers or administrators must create and configure the account, as well as set up logon rights and file/directory permissions; this process requires automation when deploying across multiple machines.
+
+#### How do file permissions work on Windows?
+
+NTFS + ACLs
+
+#### How do Linux user/group permissions work?
+
+chmod + chown
 
 ### Failure and Recovery
+
 Scenario A — process crash
+
 #### Tell me about how your service recovers after an unexpected process crash.
+
 Windows SCM or systemd can restart process flowing recovery policy configuration. Agent back to stable state then continue it jobs.
 
 Scenario B — backend unavailable
+
 #### What does the service do when the backend becomes unavailable?
+
 Remember: Backend down → RabbitMQ buffers. Network unreachable → agent buffers locally. Long time → buffered limit size or retention critical data.
 
 Scenario C — machine reboot
+
 #### What happens to your service when the machine reboots?
+
 configured start automatically with the system
 
 Scenario D — graceful shutdown
+
 #### How does your service handle a graceful shutdown?
+
 Take the requests, service stop take new jobs, inform stop worker, recent take execute for a while or take checkpoint, close connection và file. if time out, keep status to restart continuely.
+
 - Windows: SCM gửi lệnh stop; service báo trạng thái STOP_PENDING trong lúc dọn dẹp, rồi báo STOPPED.
 - systemd: thường gửi SIGTERM; service dọn dẹp trong giới hạn TimeoutStopSec, sau đó systemd có thể buộc dừng nếu process không thoát.
 
 Data Consistency
-

@@ -56,9 +56,9 @@
 
 ## Tell us about yourself and your relevant experience? (100%)
 
-> I’m Quang, a software engineer 2.5 yoe, distributed systems and security-related products. 
-> Previously, at OPSWAT, I worked on an IDS with 3 components: Enterprise, Site, and Sensor. I was involved in 3 but most of my hands-on work was around building the Sensor component including its communication, lifecycle, package and deployment. 
-> Currently, I’m at AvePoint, working mainly on a cloud platform in the Microsoft Azure. 
+> I’m Quang, a software engineer 2.5 yoe, distributed systems and security-related products.
+> Previously, at OPSWAT, I worked on an IDS with 3 components: Enterprise, Site, and Sensor. I was involved in 3 but most of my hands-on work was around building the Sensor component including its communication, lifecycle, package and deployment.
+> Currently, I’m at AvePoint, working mainly on a cloud platform in the Microsoft Azure.
 > I’m interested in this role because it’s aligned with my experience and my background, especially around system agents, networking, and OS-level behavior.
 
 ## Walk us through the product you worked on at OPSWAT. What did you personally own?
@@ -83,81 +83,47 @@
 > Once it became a software agent, we had to care much more about service lifecycle, permissions, resource usage, recovery after crashes, installation and upgrades, and reliable communication with Site.
 > That transition is actually where a lot of my work around Windows Services and Linux daemons came from.
 
-`Build & lifecycle`
-### Tell me about a background service/agent you built?
-Why did it need to be a service/daemon instead of a normal application? 
-How does it start on Windows and Linux?
-How does it stop gracefully?
-What happens when the machine reboots?
-How does the service communicate with the backend?
-How do you handle long-running work without blocking the service?
-`Privilege & permissions`
-Which account did your service run under?
-Why did it need that permission?
-Why shouldn't everything run as LocalSystem/root?
-How do file permissions work on Windows?
-How do Linux user/group permissions work?
+### [Build](./os-service.md)
+
+### [Privilege & permissions](./os-service.md)
 
 ### [Packaging & installation](./packaging.md#packaging--installation)
 
 ### [Update & deployment](./packaging.md#update--deployment)
 
 ### [Failure & recovery](./os-service.md#failure-and-recovery)
-Scenario A — process crash
-Scenario B — backend unavailable
-Scenario C — machine reboot
-Scenario D — graceful shutdown
 
-`Maintaining & troubleshooting`
-### How would you investigate high CPU or memory usage on a customer’s device?
+### [Maintaining & troubleshooting](./os-service.md#failure-and-recovery)
 
-> Usually customer not allow us access into there enviroment → setting meeting to troubleshooting.
-> Check htop or Task Manager on Windows → CPU or RAM and whether it keeps growing. 
-> Check systemctl or scm to see service health or crash loop.
-> Check logs, memory dumps if it need.
-> Reproduce
-> Hot fix, release patch, workaround,...
-
-### Describe a difficult production bug. How did you find the root cause and verify the fix?
-
-> We had a production issue where the connection between our components kept dropping, and it was hard to reproduce. Some devices would just stop sending data.
-> Our socket was supposed to exist only once in the whole app, but the dependency injection setup was quietly creating a second copy without any error. One copy kept the live connection, and the other was the one some parts of the code were actually using. When the wrong one lost its connection, everything depending on it went silent.
-> To find it, I looked at the logs around the drops and noticed the connection behaved as if it were two different objects. So I added logging in the constructor to see how many times it got created. It showed up twice, which confirmed the cause. Then I traced it back to how we registered it,it was registered in two different ways, so the system built one for each'.
-> I fixed the registration so only one instance exists, then checked it by running the same scenario that used to fail, and the constructor now logged only once. Nothing dropped over.
-> To prevent it from happening again, I added a test that checks the socket is created only once / added a startup check / documented how to register shared services.
 
 ## Credentials
 
-`Local data storage and Secure credential storage`
+### Where is agent `Local data storage and Secure credential storage` data in local?
 
-### Where is agent storage data in local? 
 - (All data) Sqlite Datbase + (sensitive data) sqlitecypher encripted + DPAPI (windows encrypted cyperkey) + systemd-creds (Linux).
 - Files permissions Windows (least privilege): NTFS ACL → dedicated service account; Linux: chown owner → chmod 600/750
 
-### Incase network/backend unavailable, how do you handle buffered data?
-Remember: Backend down → RabbitMQ buffers. Network unreachable → agent buffers locally. Long time → buffered limit size or retention critical data.
+<!-- ### Incase network/backend unavailable, how do you handle buffered data?
+Remember: Backend down → RabbitMQ buffers. Network unreachable → agent buffers locally. Long time → buffered limit size or retention critical data. -->
 
-### How to avoid corruption data when service crash/restart?
-transaction/WAL → atomic write → persistent state → restart recovery → idempotent retry
+<!-- ### How to avoid corruption data when service crash/restart?
+transaction/WAL → atomic write → persistent state → restart recovery → idempotent retry -->
 
-`Encryption at rest / in transit`
+### Do you know `Encryption in transit and Encryption in rest`?
 
-### Do you know Encryption in transit and Encryption in rest?
 - Encryption in transit protects data while it is travelling between systems, usually using TLS, such as HTTPS between an agent and backend.
-- Encryption at rest protects stored data, for example a local database, cached sensitive information, or credentials stored on disk.  
+- Encryption at rest protects stored data, for example a local database, cached sensitive information, or credentials stored on disk.
 
 ### How would you choose how components communicate?
 
 > We used three mechanisms, chosen by the nature of the data:
 > REST API for stateless request/response: configuration, queries, dashboard data. Simple, cacheable, easy to retry.
-> Sockets for low-latency, high-frequency signals: realtime status. If one is lost, the next one replaces it, so occasional loss is acceptable. 
+> Sockets for low-latency, high-frequency signals: realtime status. If one is lost, the next one replaces it, so occasional loss is acceptable.
 > Message queue for critical data like alerts and asset events. Messages are persisted and acknowledged, so if the network drops between tiers, nothing is lost and the queue redelivers after reconnect. Because redelivery can cause duplicates, consumers dedupe with message IDs (idempotent processing).
+
 ```
-Sensor                         Site/ Queue                     
+Sensor                         Site/ Queue
   |                                 |
-  |========== HTTPS / REST =========|
-  |========== WebSocket ============|
-  |========== Message Queue ========|
   |                                 |
   |---- Trust Company CA ---------->|
   |     (installed during setup)    |
@@ -171,41 +137,39 @@ Sensor                         Site/ Queue
   |     - hostname valid            |
   |     - not expired               |
   |                                 |
-  |==== Encrypted TLS channel =====>|
+  |==== Encrypted TLS channel ======|
   |                                 |
-  |---- HTTPS POST /handshake ----->|
+  |---- HTTPS POST /handshake ----->| (HTTPS)
   |<--- Access token / config ------|
-  |(--- HTTPS GET /inventory ------>|
-  |<--- HTTPS response ------------)|
   |                                 |
-  |                                 |
-  |(--- HTTPS GET /ws ------------->|
+  |---- HTTPS GET /ws ------------->| (WSS)
   |     Upgrade: websocket          |
-  |<--- 101 Switching Protocols ---)|
+  |<--- 101 Switching Protocols ----|
   |==== WebSocket over TLS (WSS) ===|
   |---- heartbeat ----------------->|
   |<--- command --------------------|
   |---- status/event -------------->|
   |                                 |
-  |                                 |
-  |---- AMQP authenticate --------->|
+  |---- AMQP authenticate --------->| (AMQPS)
   |---- Publish event ------------->|
   |<--- Consume command/message ----|
   |---- ACK ------------------------|
 ```
+
 `Secrets management`
 
 > "There are Azure Key Vault, Vault but I haven't work with `not-use-tech` in production. As developer, we just consume it through API, this handle by Devops, so I wouldnt to claims that part.
+
 ---
 
 ## Languages
 
 ### Your strongest language is C#. How comfortable are you with Rust or Go?
 
-> Claim the question, 
-> but I don't see switching languages as a big obstacle. 
+> Claim the question,
+> but I don't see switching languages as a big obstacle.
 > The core concepts carry over: OOP, design pattern,...
-> idioms, like goroutines in Go or ownership in Rust, I may take time to deep dive in. 
+> idioms, like goroutines in Go or ownership in Rust, I may take time to deep dive in.
 > I also use AI to get familiar with language radpily so I dont find any problems here.
 
 ---
@@ -227,18 +191,17 @@ Sensor                         Site/ Queue
 
 ### VPN vs ZTNA
 
-So a strong interview answer would be:
-
 > A traditional VPN establishes an encrypted tunnel and usually gives the device network-level access to a private network. ZTNA follows zero-trust principles: it continuously evaluates identity, device posture, and policy, and grants access to specific resources rather than implicitly trusting a device because it's inside the network.
 
 ---
 
 ## 3rd party integration
 
-> I have solid experience designing and consuming REST APIs, and I’ve integrated with several third-party systems.
+> I’ve integrated with several third-party systems.
 > In my previous work, I integrated with platforms and SDKs such as ServiceNow, Cisco Meraki, Aruba ClearPass, Siemens, Schneider Electric, and Rockwell Automation. Depending on the integration, I worked with REST APIs or vendor SDKs, handled authentication, mapped external data into our internal models, processed errors and timeouts, and made sure the integration could recover when the external system was temporarily unavailable.
 
-> "I haven't work with `not-use-tech` in production. The closest thing I've done is `<...>`. My understanding is that `not-use-tech` which `<Explain>`,  so I wouldnt to claims that part."
+> "I haven't work with `not-use-tech` in production. The closest thing I've done is `<...>`. My understanding is that `not-use-tech` which `<Explain>`, so I wouldnt to claims that part."
+
 ---
 
 # 55+ minutes
@@ -250,4 +213,3 @@ Remember: Forensic traces (face edge noise, light distribution) → human behavi
 ### What are your availability, notice period, and expectations for remote collaboration?
 
 My notice period is 30 days, starting from the day I accept the offer, so I could start right after that. I'm comfortable working remotely and I'm used to collaborating that way.
-
