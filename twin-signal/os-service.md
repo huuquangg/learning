@@ -229,3 +229,25 @@ Persistent=true
 [Install]
 WantedBy=timers.target
 ```
+
+### Failure and Recovery
+Scenario A — process crash
+#### Tell me about how your service recovers after an unexpected process crash.
+Windows SCM or systemd can restart process flowing recovery policy configuration. Agent back to stable state then continue it jobs.
+
+Scenario B — backend unavailable
+#### What does the service do when the backend becomes unavailable?
+Remember: Backend down → RabbitMQ buffers. Network unreachable → agent buffers locally. Long time → buffered limit size or retention critical data.
+
+Scenario C — machine reboot
+#### What happens to your service when the machine reboots?
+configured start automatically with the system
+
+Scenario D — graceful shutdown
+#### How does your service handle a graceful shutdown?
+Take the requests, service stop take new jobs, inform stop worker, recent take execute for a while or take checkpoint, close connection và file. if time out, keep status to restart continuely.
+- Windows: SCM gửi lệnh stop; service báo trạng thái STOP_PENDING trong lúc dọn dẹp, rồi báo STOPPED.
+- systemd: thường gửi SIGTERM; service dọn dẹp trong giới hạn TimeoutStopSec, sau đó systemd có thể buộc dừng nếu process không thoát.
+
+Data Consistency
+

@@ -102,17 +102,12 @@ How do Linux user/group permissions work?
 
 ### [Update & deployment](./packaging.md#update--deployment)
 
-`Failure & recovery`
+### [Failure & recovery](./os-service.md#failure-and-recovery)
 Scenario A — process crash
 Scenario B — backend unavailable
-### What should happen when the backend is unavailable?
-
-> I would use timeouts and retry temporary failures with increasing delays, up to a maximum delay. Some randomness in the delay helps devices avoid reconnecting together. If data must survive an outage, I would use a bounded local buffer and define what happens when it fills. After reconnecting, I would send pending work carefully. Authentication or invalid-request errors need investigation rather than repeated retries.
-
-**Remember:** Timeout → backoff → bounded buffer → reconnect.
-
 Scenario C — machine reboot
 Scenario D — graceful shutdown
+
 `Maintaining & troubleshooting`
 ### How would you investigate high CPU or memory usage on a customer’s device?
 
@@ -130,10 +125,6 @@ Scenario D — graceful shutdown
 > To find it, I looked at the logs around the drops and noticed the connection behaved as if it were two different objects. So I added logging in the constructor to see how many times it got created. It showed up twice, which confirmed the cause. Then I traced it back to how we registered it,it was registered in two different ways, so the system built one for each'.
 > I fixed the registration so only one instance exists, then checked it by running the same scenario that used to fail, and the constructor now logged only once. Nothing dropped over.
 > To prevent it from happening again, I added a test that checks the socket is created only once / added a startup check / documented how to register shared services.
-
-### How would you keep an agent reliable over a long time?
-
-> I would avoid busy loops, limit concurrent work and queue sizes, and release resources when they are no longer needed. I would add useful logs and monitor memory, CPU, and recent successful activity. Expected failures, such as a temporary network problem, should be handled. The service manager can restart a crashed process, but a process that is alive and stuck needs a separate health check.
 
 ## Credentials
 
