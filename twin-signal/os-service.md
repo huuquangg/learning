@@ -17,7 +17,7 @@ Runtime / boot sequence
 
 #### Registry location
 
-All services (and drivers) are registered under: HKLM\SYSTEM\CurrentControlSet\Services\<ServiceName>
+All services (and drivers) are registered under: `HKLM\SYSTEM\CurrentControlSet\Services\<ServiceName>`
 Key values under each service key:
 
 ```init
@@ -103,6 +103,129 @@ Common basic permissions:
 
 ---
 
+### Linux
+
+Runtime / boot sequence
+
+1. Bootloader (for example GRUB) loads the Linux kernel.
+2. Kernel loads CPU, memory, devices/drivers, filesystem.
+3. starts [`systemd`](#systemd) as PID 1.
+4. `systemd` reads [unit files](#unit-file), builds the [dependency](#dependencies-and-ordering-separate-concepts) graph, and starts units required by the boot targets.
+5. Services that are installed but not enabled wait until something requests them, for example another unit, socket/timer activation, D-Bus activation, or a user/admin running [`systemctl start`](#manage-tool-systemd).
+  - `systemd` creates/configures the service's cgroup
+   - applies [`User=` / `Group=`](#service-account-systemd)filesystem restrictions
+   - executes the command configured in `ExecStart=`, eventually running the application's `main()` / `Program.Main()`
+6. Monitoring and supervid through the service's cgroup. [`Restart=`](#recovery-systemd). Sends `SIGTERM` to graceful shutdown. If it does not exit within `TimeoutStopSec=`, systemd can terminate it with `SIGKILL`.
+
+#### systemd
+
+- Units are the objects systemd manages. Types:
+  - `.service` — a daemon/process
+  - `.socket` — socket activation
+  - `.timer` — cron-like scheduling
+  - `.target` — grouping/sync points (like runlevels)
+  - `.mount`, `.automount`, `.device`, `.path`, `.slice`, `.scope`, `.swap`
+- Targets: `multi-user.target` (~runlevel 3), `graphical.target` (~5), `rescue.target`, `default.target` (symlink to the boot target).
+- cgroups: each service runs in its own cgroup, so systemd can track all child processes and kill them reliably on stop.
+
+#### unit file
+
+Unit file locations (precedence high to low)
+
+```
+/etc/systemd/system/          # admin-created/overrides
+/run/systemd/system/          # runtime
+/usr/lib/systemd/system/      # package-installed (don't edit)
+~/.config/systemd/user/       # per-user units
 ```
 
+Use drop-ins (`systemctl edit foo.service` → `/etc/systemd/system/foo.service.d/override.conf`) rather than editing packaged files.
+
+```ini
+[Unit]
+Description=My App
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/myapp --config /etc/myapp.conf
+User=myapp
+Group=myapp
+Restart=on-failure
+RestartSec=5
+Environment=LOG_LEVEL=info
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Key `[Service]` options
+
+- Type: `simple` (default), `exec`, `forking` (classic daemon, needs `PIDFile=`), `oneshot`, `notify` (service signals readiness via `sd_notify`), `dbus`, `idle`
+  - `Type=simple` — systemd considers the service started after the process is launched
+  - `Type=exec` — considered started once `execve()` successfully executes the configured program
+  - `Type=notify` — application initializes and explicitly sends `READY=1` to systemd using `sd_notify()`
+  - `Type=forking` — used by traditional daemons that fork and let the parent process exit
+- Restart: `no`, `on-failure`, `always`, `on-abnormal`, etc.
+- ExecStartPre / ExecStartPost / ExecStop / ExecReload
+- TimeoutStartSec / TimeoutStopSec
+- User / Group / DynamicUser
+
+#### Dependencies and ordering (separate concepts):
+
+Enabled services are pulled into the boot transaction through relationships such as `WantedBy=multi-user.target` created by `systemctl enable`. Services are started according to dependency and ordering rules such as [`Wants=` / `Requires=`](#dependencies-systemd) and [`After=` / `Before=`](#ordering-systemd).
+
+- `Requires=`, `Wants=`, `BindsTo=`, `Conflicts=` — _what_ gets pulled in
+- `After=`, `Before=` — _order_ only
+
+Hardening options (a big systemd strength)
+
+```
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+RestrictAddressFamilies=AF_INET AF_INET6
+MemoryMax=512M
+```
+
+Check the score with `systemd-analyze security myapp.service`.
+
+#### Management commands
+
+```
+systemctl start|stop|restart|reload|status <unit>
+systemctl enable|disable <unit>      # create/remove WantedBy symlinks
+systemctl enable --now <unit>
+systemctl mask|unmask <unit>         # like "Disabled" but stronger (links to /dev/null)
+systemctl daemon-reload              # after editing unit files
+systemctl list-units --type=service
+systemctl list-unit-files
+systemctl cat|show|edit <unit>
+systemctl --user ...                 # per-user manager
+systemctl get-default / set-default multi-user.target
+
+=== Logging: journald ===
+
+journalctl -u myapp.service -f       # follow
+journalctl -b                        # this boot
+journalctl -p err --since "1 hour ago"
+journalctl -xe                       # recent errors with explanations
+
+=== Boot analysis ===
+systemd-analyze                      # total boot time
+systemd-analyze blame                # slowest units
+systemd-analyze critical-chain
+
+=== Timers (cron replacement) ===
+
+# backup.timer
+[Timer]
+OnCalendar=daily
+Persistent=true
+[Install]
+WantedBy=timers.target
 ```
