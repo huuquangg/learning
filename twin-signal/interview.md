@@ -1,6 +1,6 @@
 # Required Qualifications
 
-[Languages](./interview.md#languages)
+[Languages](#languages)
 
 - Proficiency in at least one relevant systems/native language, such as Rust, Go, or a comparable language
 - ~~(Preferred) Experience with JavaScript or Python (Typescript)~~
@@ -8,7 +8,7 @@
 
 ---
 
-[Networking Foundations](./network.md#networking-foundations)
+[Networking Foundations](#networking-foundations)
 
 - Solid understanding of networking fundamentals: TCP/IP, DNS, routing, firewalls, VPN protocols, and/or ZTNA concepts.
 - ~~(Preferred) Experience building agents/clients for RMM (remote monitoring and management), EDR/XDR, MDM, VPN, or ZTNA products.~~
@@ -33,19 +33,13 @@
 ---
 
 [credentials](./interview.md#credentials)
-[communication](./interview.md#communication)
 
 - Familiarity with local data storage, secure credential storage, encryption at rest/in transit, and secrets management.
 - Familiarity with cloud platforms such as Azure or AWS, and real-time communication protocols (WebSockets, gRPC, MQTT).
 
 ---
 
-[scenarios](./interview.md#scenarios)
-
-- Ability to independently troubleshoot agent, network, identity-integration, and platform-specific issues
-
----
-
+- ~~Ability to independently troubleshoot agent, network, identity-integration, and platform-specific issues~~
 - ~~Strong professional English communication skills, both written and verbal. (practice)~~
 - ~~3+ years of professional software engineering experience for mid-level candidates, or 5+ years for senior-level candidates.~~
 - ~~Experience with Git, code review, automated testing, build tooling, and software release practices.~~
@@ -58,8 +52,7 @@
 
 ---
 
-
-# 0–5 minutes: Introduction
+# 0–10 minutes: Introduction
 
 ## Tell us about yourself and your relevant experience? (100%)
 
@@ -67,10 +60,6 @@
 > Previously, at OPSWAT, I worked on an IDS with 3 components: Enterprise, Site, and Sensor. I was involved in the Sensor agent and the Enterprise, Site backend, but most of my hands-on work was around building and maintaining the Sensor agent including its communication, lifecycle, and deployment. 
 > Currently, I’m at AvePoint, working mainly on a cloud platform in the Microsoft Azure ecosystem. 
 > I’m interested in this role because it’s aligned with my experience and my background, especially around system agents, networking, and OS-level behavior.
-
----
-
-# 5–10 minutes: Your experience and project ownership.
 
 ## Walk us through the product you worked on at OPSWAT. What did you personally own?
 
@@ -89,12 +78,12 @@
 
 ### Why build services?
 
-> Originally, the Sensor application was deployed together with hardware appliances > over time the hardware became a significant cost. Every new new customers required additional physical devices, logistics, maintenance, and replacement when hardware failed or became outdated.
+> Originally, the Sensor application was deployed together with hardware appliances → over time the hardware became a significant expensive.
 > So we needed a more flexible approach that we moved toward a software-agent model. Instead of requiring customers to deploy new hardware everywhere, the Sensor could run as small application directly on existing customer machines.
 > Once it became a software agent, we had to care much more about service lifecycle, permissions, resource usage, recovery after crashes, installation and upgrades, and reliable communication with Site.
 > That transition is actually where a lot of my work around Windows Services and Linux daemons came from.
 
-Build & lifecycle
+`Build & lifecycle`
 ### Tell me about a background service/agent you built?
 Why did it need to be a service/daemon instead of a normal application? 
 How does it start on Windows and Linux?
@@ -102,26 +91,18 @@ How does it stop gracefully?
 What happens when the machine reboots?
 How does the service communicate with the backend?
 How do you handle long-running work without blocking the service?
-Privilege & permissions
+`Privilege & permissions`
 Which account did your service run under?
 Why did it need that permission?
 Why shouldn't everything run as LocalSystem/root?
 How do file permissions work on Windows?
 How do Linux user/group permissions work?
 
-Packaging & installation
-How did you package the Windows agent?
-What did the installer actually do?
-How was the service registered?
-How did silent installation work?
-How did Linux installation differ?
-Update & deployment
-How would you update an installed agent?
-What if the update fails?
-How would you deploy to thousands of machines?
-How do you verify the update package?
+### [Packaging & installation](./packaging.md#packaging--installation)
 
-Failure & recovery
+### [Update & deployment](./packaging.md#update--deployment)
+
+`Failure & recovery`
 Scenario A — process crash
 Scenario B — backend unavailable
 ### What should happen when the backend is unavailable?
@@ -132,15 +113,16 @@ Scenario B — backend unavailable
 
 Scenario C — machine reboot
 Scenario D — graceful shutdown
-Maintaining & troubleshooting
-How do you know the agent is healthy?
+`Maintaining & troubleshooting`
 ### How would you investigate high CPU or memory usage on a customer’s device?
 
-> I'd start by finding out which process, version, and devices are affected, and when it began. On the device, I'd use `htop` on Linux or Task Manager on Windows to see what's using CPU or RAM and whether it keeps growing. I'd also add a simple health check to the agent that reports its own CPU and RAM every minute to our monitoring, with an alert if it stays above a threshold, and let systemd or the Windows service settings restart it if it crashes. Then I'd check the logs around when the problem began, and if needed, take memory dumps to see what's growing. To reproduce it, I'd run the same version and config in a test environment and leave it running for a few hours while watching CPU and memory. After fixing it, I'd add an alert so we catch it earlier next time.
+> Usually customer not allow us access into there enviroment → setting meeting to troubleshooting.
+> Check htop or Task Manager on Windows → CPU or RAM and whether it keeps growing. 
+> Check systemctl or scm to see service health or crash loop.
+> Check logs, memory dumps if it need.
+> Reproduce
+> Hot fix, release patch, workaround,...
 
-How do you troubleshoot service restart loops?
-Where are logs stored?
-What if the service works manually but not as a service?
 ### Describe a difficult production bug. How did you find the root cause and verify the fix?
 
 > We had a production issue where the connection between our components kept dropping, and it was hard to reproduce. Some devices would just stop sending data.
@@ -149,17 +131,9 @@ What if the service works manually but not as a service?
 > I fixed the registration so only one instance exists, then checked it by running the same scenario that used to fail, and the constructor now logged only once. Nothing dropped over.
 > To prevent it from happening again, I added a test that checks the socket is created only once / added a startup check / documented how to register shared services.
 
-
 ### How would you keep an agent reliable over a long time?
 
 > I would avoid busy loops, limit concurrent work and queue sizes, and release resources when they are no longer needed. I would add useful logs and monitor memory, CPU, and recent successful activity. Expected failures, such as a temporary network problem, should be handled. The service manager can restart a crashed process, but a process that is alive and stuck needs a separate health check.
-
-### How would you make automatic updates safer?
-
-> I would verify that the update comes from a trusted publisher and is intended for this platform and version before running it. I would preserve configuration, stop the service cleanly when required, install the update, and check that the service works afterward. I would also plan recovery if the update fails. I would not assume every installer automatically rolls everything back, especially if stored data has changed.
-
-Remember: Verify → preserve → install → health check → recover.
-
 
 ## Credentials
 
@@ -239,12 +213,34 @@ Sensor                         Site/ Queue
 
 > Claim the question, 
 > but I don't see switching languages as a big obstacle. 
-> The core concepts carry over: 
+> The core concepts carry over: OOP, design pattern,...
 > idioms, like goroutines in Go or ownership in Rust, I may take time to deep dive in. 
 > I also use AI to get familiar with language radpily so I dont find any problems here.
 
 ---
 
+## Networking Foundations
+
+| Topic          | Interview-ready understanding                                                                                                                                                                                                                                                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **TCP vs UDP** | Both are **transport-layer protocols**. **TCP** provides a reliable, ordered datagrams: it establishes a connection, tracks sequence numbers, acknowledges data, and retransmits lost data. **UDP** sends independent datagrams with no guarantee of delivery, tracks ordering, or retransmission, trading reliability for lower overhead and latency. |
+| **DNS**        | DNS translates human-friendly domain names such as `google.com` into information computers can use, most commonly IP addresses such as `142.x.x.x`.                                                                                                                                                                                                    |
+| **Routing**    | Network routing decides **which path packets take between networks**, based primarily on destination IP addresses and routing tables.                                                                                                                                                                                                                  |
+| **Ports**      | An IP identifies a **machine/network interface**, while a port identifies a particular network service/process endpoint on that machine. For example `192.168.1.10:443`: IP → machine, port `443` → service listening there.                                                                                                                           |
+| **Sockets**    | A socket is the **programming abstraction/API** applications use to communicate over the network. You can create a TCP socket or UDP socket. A network connection is commonly identified by protocol + source IP/port + destination IP/port.                                                                                                           |
+| **HTTP**       | HTTP is an **application-layer request/response protocol**. HTTP/1.1 and HTTP/2 normally run over TCP. HTTP itself is stateless: each request contains the information needed to process it, although applications can maintain state using cookies, tokens, sessions, databases, etc. HTTP/3 is different: it runs over QUIC, which uses UDP.         |
+| **WebSocket**  | WebSocket gives the client and server a **persistent, full-duplex connection**, allowing either side to send messages at any time. Important correction: traditional WebSocket normally runs over **TCP, not UDP**. It usually begins with an HTTP handshake and then upgrades the connection to WebSocket.                                            |
+| **Firewall**   | A firewall enforces rules controlling network traffic. Rules can consider things like source/destination IP, ports, protocol, connection state, application, interface, etc., and decide whether traffic is allowed or blocked.                                                                                                                        |
+| **VPN**        | It creates an encrypted tunnel between your device and another network/VPN gateway. It can route some or all network traffic through that tunnel, making your device logically connected to the remote/private network.                                                                                                                                |
+| **ZTNA**       | Zero Trust Network Access provides access based on **identity, device posture, policy, and context**, rather than trusting someone merely because they are connected to the corporate network. Typically, it grants access to specific applications/resources instead of giving broad network access like a traditional VPN.                           |
+
+### VPN vs ZTNA
+
+So a strong interview answer would be:
+
+> A traditional VPN establishes an encrypted tunnel and usually gives the device network-level access to a private network. ZTNA follows zero-trust principles: it continuously evaluates identity, device posture, and policy, and grants access to specific resources rather than implicitly trusting a device because it's inside the network.
+
+---
 
 ## 3rd party integration
 
@@ -254,7 +250,7 @@ Sensor                         Site/ Queue
 > "I haven't work with `not-use-tech` in production. The closest thing I've done is `<...>`. My understanding is that `not-use-tech` which `<Explain>`,  so I wouldnt to claims that part."
 ---
 
-## 60+ minutes
+# 55+ minutes
 
 ### Describe a deepfake project that you have worked on?
 

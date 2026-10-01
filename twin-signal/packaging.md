@@ -1,6 +1,5 @@
-For Debian Linux, we first built the agent into a native executable and then packaged the artifacts as a .deb. The debian/control file defined package metadata and dependencies, while debian/rules used debhelper to drive the build and packaging lifecycle. We installed the executable under /usr/bin, configuration under /etc, and included a systemd unit for the background service. During installation, package scripts handled things like creating the service account, setting permissions and enabling or starting the service. For upgrades, we preserved configuration, replaced the application binaries, reloaded systemd when necessary and restarted the service. We tested the final .deb by installing and upgrading it on supported Debian environments.
-
-## Debian
+# Debian
+```fresh-install
 Source Code
    │
    │ build
@@ -27,14 +26,14 @@ debian/
      │
      │ dpkg-buildpackage / debhelper
      ▼
-   agent.deb
-     │
-     │ apt install / dpkg -i
-     ▼
 ┌───────────────────────────────┐
 │ Debian Package Installation   │
 └───────────────┬───────────────┘
                 │
+                ▼
+            agent.deb
+                │
+                │ apt install / dpkg -i
                 ▼
         Resolve dependencies
                 │
@@ -64,10 +63,66 @@ debian/
                 │
                 ▼
            Agent Running
+```
+```upgrade
+Existing installation
+       │
+       │ apt upgrade
+       ▼
+New agent.deb detected
+       │
+       ▼
+prerm / package-manager hooks
+       │
+       ▼
+Stop service if required
+       │
+       ▼
+Preserve /etc configuration
+       │
+       ▼
+Unpack new package
+       │
+       ├── replace /usr/bin/agent
+       │
+       ├── update supporting files
+       │
+       └── update systemd unit if changed
+       ▼
+postinst
+       │
+       ▼
+systemctl daemon-reload
+       │
+       ▼
+restart / start service
+       │
+       ▼
+New version running
+```
 
+```
+apt remove agent
+      │
+      ▼
+prerm
+      │
+      ├── stop service
+      └── disable service
+      ▼
+Remove package files
+      │
+      ▼
+postrm
+      │
+      ▼
+Package removed
 
-## Windows
+/etc config may remain
+```
 
+# Windows
+```
 Rust / Go / C# / C++
         │
         │ build / publish
@@ -95,7 +150,7 @@ WiX project
 ┌───────────┐
 |   MSI     |
 └─────┬─────┘
-
+      |
 msiexec Agent.msi
        │
        ▼
@@ -122,3 +177,37 @@ msiexec Agent.msi
 │ Start service            │
 │ Commit                   │
 └──────────────────────────┘
+```
+
+## Packaging & installation
+### How did you package the agent?
+Remember: build the agent → collect/harvest artifacts → define metadata packaging → create MSI/EXE or DEB → install and configure the service → test fresh install, upgrade, and uninstall.
+
+### What did the installer actually do?
+Remember: install files → configure the agent → set permissions → register the service → enable automatic startup → start the service → handle upgrade and uninstall safely.
+
+### How was the service registered?
+- Windows: The MSI used WiX’s ServiceInstall to register the executable with the Service Control Manager, and ServiceControl to start or stop it during installation and removal.
+- Linux: The .deb installed a systemd unit file under /lib/systemd/system/. The package scripts reloaded systemd and enabled the service so it could start on boot.
+
+### How did silent installation work?
+interactive install gets values from dialogs, while
+silent install gets the same values from command-line msiexec with /qn or apt or dpkg to install the .deb.
+
+## Update & deployment
+### How would you update an installed agent?
+On Windows: MSP patch or install a newer MSI.
+On Linux, we’d publish a new .deb version. APT Repo handle
+
+### What if the update fails?
+signature verification fails: reject.
+installation fails: rollback or a recovery to pervious.
+After installation fails: restore and report the failure.
+
+### How would you deploy to thousands of machines?
+Ansible - Not best practises - Devops/IT handle this.
+
+### How do you verify the update package?
+signs it with a code-signing 
+-> MSI(Wixtoolset): ProductCode
+-> Deb: GPG Key
