@@ -1,4 +1,4 @@
-### Windows
+# Windows
 
 Runtime / boot sequence
 
@@ -16,7 +16,7 @@ Runtime / boot sequence
    - get [control codes](#lifecycle-scm) (stop, pause, shutdown, custom),
    - SetServiceStatus(`SERVICE_RUNNING`).
 
-#### Registry location
+## Registry location
 
 All services (and drivers) are registered under: `HKLM\SYSTEM\CurrentControlSet\Services\<ServiceName>`
 Key values under each service key:
@@ -45,7 +45,7 @@ FailureActions - recovery settings (restart/run command/reboot, reset period)
 
 For svchost-hosted services, there's also a `Parameters` subkey with `ServiceDll` pointing to the DLL, since the actual code isn't in an executable at ImagePath — svchost.exe is the ImagePath, and it loads the DLL.
 
-#### Service Control Manager (SCM)
+## Service Control Manager (SCM)
 
 Windows services are background processes that run independently of user login, managed by the Service Control Manager (SCM).
 
@@ -62,7 +62,7 @@ Windows services are background processes that run independently of user login, 
   - `NetworkService` — minimal privileges, network access as machine account
   - Custom user/domain account — for specific permission needs
 
-#### Service SIDs (SCM)
+## Service SIDs (SCM)
 
 - Service SIDs / isolation — each service can get its own SID so its resources can be locked down independently of others sharing a host process
 - Session 0 isolation (since Vista) — services run in Session 0, separate from user sessions, so they can't interact with the desktop
@@ -70,7 +70,7 @@ Windows services are background processes that run independently of user login, 
 - Standalone `.exe` per service, or
 - Shared `svchost.exe` processes — many Windows services are DLLs grouped into shared host processes to reduce overhead
 
-#### Manage Tool (SCM)
+## Manage Tool (SCM)
 
 Management tools:
 
@@ -79,7 +79,7 @@ Management tools:
 - `PowerShell` — `Get-Service`, `Start-Service`, `Stop-Service`, `Set-Service`, `New-Service`
 - Registry — service configs live under `HKLM\SYSTEM\CurrentControlSet\Services`
 
-#### Lifecycle (SCM)
+## Lifecycle (SCM)
 
 Lifecycle/state machine: `Stopped → Start Pending → Running → Stop Pending → Stopped` (plus Pause/Continue states if supported)
 
@@ -87,7 +87,7 @@ Dependencies: services can declare dependencies on other services or drivers; SC
 
 Recovery options: each service can define actions on failure (restart service, run a program, reboot machine), configurable per failure count.
 
-#### File permissions (SCM)
+## File permissions (SCM)
 
 File and folder permissions are primarily based on `NTFS ACLs`.
 SYSTEM → Full Control
@@ -105,7 +105,7 @@ Common basic permissions:
 
 ---
 
-### Linux
+# Linux
 
 Runtime / boot sequence
 
@@ -124,7 +124,7 @@ Runtime / boot sequence
 7. Monitoring and supervid through the service's cgroup.
 8. Sends `SIGTERM` to graceful shutdown. If it does not exit within `TimeoutStopSec=`, systemd can terminate it with `SIGKILL`.
 
-#### systemd
+## systemd
 
 - Units are the objects systemd manages. Types:
   - `.service` — a daemon/process
@@ -135,7 +135,7 @@ Runtime / boot sequence
 - Targets: `multi-user.target` (~runlevel 3), `graphical.target` (~5), `rescue.target`, `default.target` (symlink to the boot target).
 - cgroups: each service runs in its own cgroup, so systemd can track all child processes and kill them reliably on stop.
 
-#### unit file
+## unit file
 
 Unit file locations (precedence high to low)
 
@@ -179,7 +179,7 @@ Key `[Service]` options
 - TimeoutStartSec / TimeoutStopSec
 - User / Group / DynamicUser
 
-#### Dependencies and ordering:
+## Dependencies and ordering:
 
 Enabled services are pulled into the boot transaction through relationships such as `WantedBy=multi-user.target` created by `systemctl enable`.
 Services are started according to dependency and ordering rules such as [`Wants=` / `Requires=`] and [`After=` / `Before=`].
@@ -202,41 +202,41 @@ MemoryMax=512M
 
 Check the score with `systemd-analyze security myapp.service`.
 
-#### Management commands
+## Management commands
 
 systemctl <action>
 journalctl <log>
 systemd-analyze <analyze>
 
-### Build
+# Build
 
-#### Why did it need to be a service/daemon instead of a normal application?
+## Why did it need to be a service/daemon instead of a normal application?
 
 A standard application: a user actively opens to perform a task and then closes. Examples include web browsers, photo editing software.
 A background service is a program that runs in the background, usually without a user interface. It can start automatically with the system, continue running after the user logs out, and handle tasks either continuously or on a schedule. Examples include Windows Services or Linux systemd daemons.
 
-#### How does it start on Windows and Linux? (manual)
+## How does it start on Windows and Linux? (manual)
 
-#### What happens when the machine reboots? (auto)
+## What happens when the machine reboots? (auto)
 
 [Windows](#windows)
 [Linux](#linux)
 
-#### How does the service communicate with the backend?
+## How does the service communicate with the backend?
 
 [Credential](./interview.md#credentials)
 
-#### How do you handle long-running work without blocking the service?
+## How do you handle long-running work without blocking the service?
 
 I allow independent work to run concurrently, with a limit on the number of active workers so the service doesn’t accept more work than it can handle. When capacity is reached, the business requirements determine whether new work is queued or rejected with a temporary busy response. I use timeouts and cancellation when the operation is no longer needed or when the caller disconnects. I only cancel existing work to make room for a newer request if the business rules explicitly allow the newer request to replace it.
 
 ### Privilege & permissions
 
-#### Which account did your service run under?
+## Which account did your service run under?
 
-#### Why did it need that permission?
+## Why did it need that permission?
 
-#### Why shouldn't everything run as LocalSystem/root?
+## Why shouldn't everything run as LocalSystem/root?
 
 A practical downside of using accounts with limited privileges is the need to precisely assign and maintain the necessary permissions:
 
@@ -244,11 +244,11 @@ A practical downside of using accounts with limited privileges is the need to pr
 - Varying network access: LocalService typically accesses the network as an anonymous user, whereas NetworkService and LocalSystem use the machine's identity to access network resources. Custom local users often lack the appropriate domain identity to access network resources. (Microsoft Learn)
 - Increased complexity: Installers or administrators must create and configure the account, as well as set up logon rights and file/directory permissions; this process requires automation when deploying across multiple machines.
 
-#### How do file permissions work on Windows?
+## How do file permissions work on Windows?
 
 NTFS + ACLs
 
-#### How do Linux user/group permissions work?
+## How do Linux user/group permissions work?
 
 chmod + chown
 
@@ -256,25 +256,25 @@ chmod + chown
 
 Scenario A — process crash
 
-#### Tell me about how your service recovers after an unexpected process crash.
+## Tell me about how your service recovers after an unexpected process crash.
 
 Windows SCM or systemd can restart process flowing recovery policy configuration. Agent back to stable state then continue it jobs.
 
 Scenario B — backend unavailable
 
-#### What does the service do when the backend becomes unavailable?
+## What does the service do when the backend becomes unavailable?
 
 Remember: Backend down → RabbitMQ buffers. Network unreachable → agent buffers locally. Long time → buffered limit size or retention critical data.
 
 Scenario C — machine reboot
 
-#### What happens to your service when the machine reboots?
+## What happens to your service when the machine reboots?
 
 configured start automatically with the system
 
 Scenario D — graceful shutdown
 
-#### How does your service handle a graceful shutdown?
+## How does your service handle a graceful shutdown?
 
 Take the requests, service stop take new jobs, inform stop worker, recent take execute for a while or take checkpoint, close connection và file. if time out, keep status to restart continuely.
 
