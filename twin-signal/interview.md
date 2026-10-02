@@ -1,40 +1,26 @@
 # Required Qualifications
 
-[Languages](#languages)
-
-- Proficiency in at least one relevant systems/native language, such as Rust, Go, or a comparable language
+- Proficiency in at least one relevant systems/native [language](#languages), such as Rust, Go, or a comparable language
 - ~~(Preferred) Experience with JavaScript or Python (Typescript)~~
 - ~~(Preferred) Experience with Rust or Go for systems-level or security-focused development~~
 
----
-
-[Networking Foundations](#networking-foundations)
-
-- Solid understanding of networking fundamentals: TCP/IP, DNS, routing, firewalls, VPN protocols, and/or ZTNA concepts.
+- Solid understanding of [networking](#networking-foundations) fundamentals: TCP/IP, DNS, routing, firewalls, VPN protocols, and/or ZTNA concepts.
 - ~~(Preferred) Experience building agents/clients for RMM (remote monitoring and management), EDR/XDR, MDM, VPN, or ZTNA products.~~
 
----
-
-[OS Services](./interview.md#os-services)
-
-- Hands-on experience building, [shipping](./packaging.md), and maintaining background services, daemons, system agents, or other privileged/low-footprint desktop software.
+- Hands-on experience [building](./interview.md#os-services), [shipping](./packaging.md), and maintaining [background services, daemons](os-service.md), system agents, or other privileged/low-footprint desktop software.
 - Experience with OS-level programming concepts: services/daemons, permissions models, local user/group management, process management, and system APIs on Windows, macOS, and/or Linux.
 - (Preferred) Experience with installers, silent deployment, code signing, auto-update systems, and large-scale software distribution
 - (Preferred) Experience developing agents for multiple desktop/server operating systems, including [Windows](./windows-service.md#service-control-manager-scm), macOS, and [Linux](./linux-daemon.md)
 
 ---
 
-[3rd party intergration](./interview.md#3rd-party-integration)
-
-- Experience designing and consuming REST APIs and integrating third-party systems, including identity providers and SaaS platforms.
+- Experience designing and consuming REST APIs and integrating third-party systems, including identity providers and [SaaS platforms](./interview.md#3rd-party-integration).
 - Working knowledge of identity and access management concepts: authentication (SSO, SAML, OIDC), authorization models (RBAC/ABAC), and directory services.
 - ~~(Preferred) Direct experience integrating with identity providers (Entra ID/Azure AD, Okta, Ping, Google Workspace) or SaaS admin/security APIs (e.g., Google Workspace, Microsoft Graph, Slack, Salesforce)~~
 
 ---
 
-[credentials](./interview.md#credentials)
-
-- Familiarity with local data storage, secure credential storage, encryption at rest/in transit, and secrets management.
+- Familiarity with local data storage, secure [credential](./interview.md#credentials) storage, encryption at rest/in transit, and secrets management.
 - Familiarity with cloud platforms such as Azure or AWS, and real-time communication protocols (WebSockets, gRPC, MQTT).
 
 ---
@@ -57,7 +43,7 @@
 ## Tell us about yourself and your relevant experience? (100%)
 
 > I’m Quang, a software engineer 2.5 yoe, distributed systems and security-related products.
-> Previously, at OPSWAT, I worked on an IDS with 3 components: Enterprise, Site, and Sensor. I was involved in 3 but most of my hands-on work was around building the Sensor component including its communication, lifecycle, package and deployment.
+> Previously, at OPSWAT, I worked on an IDS with 3 components: Enterprise, Site, and Sensor. I was involved in all 3 but most of my hands-on work was around building the Sensor component including its communication, lifecycle, package and deployment.
 > Currently, I’m at AvePoint, working mainly on a cloud platform in the Microsoft Azure.
 > I’m interested in this role because it’s aligned with my experience and my background, especially around system agents, networking, and OS-level behavior.
 
@@ -95,24 +81,18 @@
 
 ### [Maintaining & troubleshooting](./os-service.md#failure-and-recovery)
 
-
 ## Credentials
 
 ### Where is agent `Local data storage and Secure credential storage` data in local?
 
-- (All data) Sqlite Datbase + (sensitive data) sqlitecypher encripted + DPAPI (windows encrypted cyperkey) + systemd-creds (Linux).
-- Files permissions Windows (least privilege): NTFS ACL → dedicated service account; Linux: chown owner → chmod 600/750
+> (All data) Sqlite Datbase + (sensitive data) sqlitecypher encripted + DPAPI (windows encrypted cyperkey) + systemd-creds (Linux).
 
-<!-- ### Incase network/backend unavailable, how do you handle buffered data?
-Remember: Backend down → RabbitMQ buffers. Network unreachable → agent buffers locally. Long time → buffered limit size or retention critical data. -->
-
-<!-- ### How to avoid corruption data when service crash/restart?
-transaction/WAL → atomic write → persistent state → restart recovery → idempotent retry -->
+> Files permissions Windows (least privilege): NTFS ACL → dedicated service account; Linux: chown owner → chmod 600/750
 
 ### Do you know `Encryption in transit and Encryption in rest`?
 
-- Encryption in transit protects data while it is travelling between systems, usually using TLS, such as HTTPS between an agent and backend.
-- Encryption at rest protects stored data, for example a local database, cached sensitive information, or credentials stored on disk.
+> Encryption in transit protects data while it is travelling between systems, usually using TLS, such as HTTPS between an agent and backend.
+> Encryption at rest protects stored data, for example a local database, cached sensitive information, or credentials stored on disk.
 
 ### How would you choose how components communicate?
 
