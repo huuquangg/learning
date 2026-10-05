@@ -182,50 +182,50 @@ msiexec Agent.msi
 └──────────────────────────┘
 ```
 
-## Packaging & installation
+# Packaging & installation
 
-### How did you package the agent?
+## How did you package the agent?
 
 Remember: build the agent → collect/harvest artifacts → define metadata packaging → create MSI/EXE or DEB → install and configure the service → test fresh install, upgrade, and uninstall.
 
-### What did the installer actually do?
+## What did the installer actually do?
 
 Remember: install files → configure the agent → set permissions → register the service → enable automatic startup → start the service → handle upgrade and uninstall safely.
 
-### How was the service registered?
+## How was the service registered?
 
 - Windows: The MSI used WiX’s ServiceInstall to register the executable with the Service Control Manager, and ServiceControl to start or stop it during installation and removal.
 - Linux: The .deb installed a systemd unit file under /lib/systemd/system/. The package scripts reloaded systemd and enabled the service so it could start on boot.
 
-### How did silent installation work?
+## How did silent installation work?
 
 interactive install gets values from dialogs, while
 silent install gets the same values from command-line msiexec with /qn or apt or dpkg to install the .deb.
 
-## Update & deployment
+# Update & deployment
 
-### How would you update an installed agent?
+## How would you update an installed agent?
 
 On Windows: MSP patch or install a newer MSI.
 On Linux, we’d publish a new .deb version. APT Repo handle
 
-### What if the update fails?
+## What if the update fails?
 
 signature verification fails: reject.
 installation fails: rollback or a recovery to pervious.
 After installation fails: restore and report the failure.
 
-### How would you deploy to thousands of machines?
+## How would you deploy to thousands of machines?
 
 Ansible - Not best practises - Devops/IT handle this.
 
-### How do you verify the update package?
+## How do you verify the update package?
 
 signs it with a code-signing
 -> MSI(Wixtoolset): ProductCode
 -> Deb: GPG Key
 
-### How would you investigate high CPU or memory usage on a customer’s device?
+## How would you investigate high CPU or memory usage on a customer’s device?
 
 > Usually customer not allow us access into there enviroment → setting meeting to troubleshooting.
 > Check htop or Task Manager on Windows → CPU or RAM and whether it keeps growing.
@@ -234,7 +234,7 @@ signs it with a code-signing
 > Reproduce
 > Hot fix, release patch, workaround,...
 
-### Describe a difficult production bug. How did you find the root cause and verify the fix?
+## Describe a difficult production bug. How did you find the root cause and verify the fix?
 
 > We had a production issue where the connection between our components kept dropping, and it was hard to reproduce. Some devices would just stop sending data.
 > Our socket was supposed to exist only once in the whole app, but the dependency injection setup was quietly creating a second copy without any error. One copy kept the live connection, and the other was the one some parts of the code were actually using. When the wrong one lost its connection, everything depending on it went silent.

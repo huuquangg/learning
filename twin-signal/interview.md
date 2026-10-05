@@ -50,7 +50,7 @@
 ## Walk us through the product you worked on at OPSWAT. What did you personally own?
 
 > IDS for OT industrial sector. It had 3 layers: Sensor, Site, and Enterprise.
-> At the Sensor layer, I was involved in building the agent thật captureing network traffic, identified industrial devices and protocols from vendors such as Siemens and Schneider. I was also involved in packaging installers.
+> At the Sensor layer, I was involved in building the agent that captureing network traffic, identified industrial devices and protocols from vendors such as Siemens and Schneider and patch management. I was also involved in packaging installers.
 > At the Site layer, I worked mainly on backend features for managing devices and connections, built visualization.
 > Another area I worked on was policy management and enforcement. When a policy violation was detected, Site could generate alerts and integrate with external systems such as NAC solutions, firewalls, and Aruba ClearPass to take further actions. I also integrated with platforms such as ServiceNow and Cisco Meraki for data enrichment.
 > At the Enterprise layer, I worked on parts of the centralized dashboard and configuration, so apply for multiple Sites.
